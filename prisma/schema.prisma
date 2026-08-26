@@ -1,0 +1,536 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  OWNER
+  HR
+  ACCOUNTANT
+  FLEET_MANAGER
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  name         String
+  passwordHash String
+  role         UserRole   @default(ADMIN)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Employee {
+  id               Int       @id @default(autoincrement())
+  empId            String    @unique // E.g., EMP-0001
+  name             String
+  fatherName       String?
+  dob              DateTime? @db.Date
+  gender           String? // Male, Female
+  nationality      String    @default("Oman")
+  phone            String
+  altPhone         String?
+  email            String?
+  currentAddress   String?   @db.Text
+  permanentAddress String?   @db.Text
+  emergencyName    String?
+  emergencyPhone   String?
+  joiningDate      DateTime  @db.Date
+  arrivalDate      DateTime? @db.Date // For expatriates
+  status           String    @default("Active") // Active, On Leave, Inactive, Terminated, Returned Home
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relationships
+  passports        EmployeePassport[]
+  visas            EmployeeVisa[]
+  licenses         EmployeeLicense[]
+  documents        EmployeeDocument[]
+  salaryStructures SalaryStructure[]
+  advances         EmployeeAdvance[]
+  leaves           EmployeeLeave[]
+  truckAssignments TruckAssignment[]
+  trips            Trip[]
+  fines            Fine[]
+  salaryPayments   SalaryPayment[]
+  fuelTransactions FuelTransaction[]
+  generalExpenses  Expense[]          @relation("EmployeeGeneralExpenses")
+
+  @@map("employees")
+}
+
+model EmployeePassport {
+  id             Int      @id @default(autoincrement())
+  employeeId     Int      @unique
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  passportNumber String   @unique
+  issueDate      DateTime @db.Date
+  expiryDate     DateTime @db.Date
+  issuingCountry String
+  fileUrl        String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("employee_passports")
+}
+
+model EmployeeVisa {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @unique
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  visaNumber String   @unique
+  visaType   String // E.g., Work Visa, Residence Visa
+  sponsor    String?
+  issueDate  DateTime @db.Date
+  expiryDate DateTime @db.Date
+  status     String   @default("Valid")
+  fileUrl    String?  @db.Text
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("employee_visas")
+}
+
+model EmployeeLicense {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int      @unique
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  licenseNumber    String   @unique
+  licenseType      String // E.g., Heavy Truck, Light Vehicle
+  obtainedDate     DateTime @db.Date
+  issueDate        DateTime @db.Date
+  expiryDate       DateTime @db.Date
+  issuingAuthority String   @default("ROP") // Royal Oman Police
+  fileUrl          String?  @db.Text
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("employee_licenses")
+}
+
+model EmployeeDocument {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  docType    String // E.g., Resident ID, Civil ID, Work Permit, Medical
+  docNumber  String
+  issueDate  DateTime @db.Date
+  expiryDate DateTime @db.Date
+  fileUrl    String?  @db.Text
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("employee_documents")
+}
+
+model SalaryStructure {
+  id                     Int      @id @default(autoincrement())
+  employeeId             Int
+  employee               Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  basicSalary            Decimal  @db.Decimal(12, 3)
+  accommodationAllowance Decimal  @default(0) @db.Decimal(12, 3)
+  foodAllowance          Decimal  @default(0) @db.Decimal(12, 3)
+  transportAllowance     Decimal  @default(0) @db.Decimal(12, 3)
+  otherAllowance         Decimal  @default(0) @db.Decimal(12, 3)
+  overtimeRate           Decimal  @default(0) @db.Decimal(12, 3) // OMR per hour
+  effectiveDate          DateTime @db.Date
+  notes                  String?  @db.Text
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("salary_structures")
+}
+
+model EmployeeAdvance {
+  id               Int      @id @default(autoincrement())
+  employeeId       Int
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  amount           Decimal  @db.Decimal(12, 3)
+  deductionMonthly Decimal  @db.Decimal(12, 3)
+  paidAmount       Decimal  @default(0) @db.Decimal(12, 3)
+  remainingBalance Decimal  @db.Decimal(12, 3)
+  status           String   @default("Pending") // Pending, Active, Paid, Cancelled
+  date             DateTime @db.Date
+  reason           String?  @db.Text
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("employee_advances")
+}
+
+model EmployeeLeave {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType  String // Annual, Sick, Emergency, Unpaid
+  startDate  DateTime @db.Date
+  endDate    DateTime @db.Date
+  days       Int
+  reason     String?  @db.Text
+  status     String   @default("Pending") // Pending, Approved, Rejected, Completed
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("employee_leaves")
+}
+
+model Truck {
+  id              Int                @id @default(autoincrement())
+  truckId         String             @unique // E.g., TRK-0001
+  regNumber       String             @unique // Vehicle registration
+  plateNumber     String
+  plateCode       String // E.g., A, B, YA, etc.
+  category        String             @default("Trucks") // Trucks, Trailers, Cars, Vans, Heavy equipment
+  truckType       String // E.g., Flatbed, Tipper, Trailer
+  make            String
+  model           String
+  year            Int
+  vin             String             @unique // Chassis Number
+  engineNumber    String?
+  odometer        Int                @default(0) // Current mileage in KM
+  purchaseDate    DateTime?          @db.Date
+  status          String             @default("Available") // Available, On Trip, Under Maintenance, Inactive, Sold
+  notes           String?            @db.Text
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  documents       TruckDocument[]
+  assignments     TruckAssignment[]
+  trips           Trip[]
+  maintenances    TruckMaintenance[]
+  expenses        TruckExpense[]
+  fuelLog         FuelTransaction[]
+  fines           Fine[]
+  generalExpenses Expense[]          @relation("TruckGeneralExpenses")
+
+  @@map("trucks")
+}
+
+model TruckDocument {
+  id         Int      @id @default(autoincrement())
+  truckId    Int
+  truck      Truck    @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  docType    String // Mulkiya (Registration), Insurance, Inspection
+  docNumber  String
+  issueDate  DateTime @db.Date
+  expiryDate DateTime @db.Date
+  fileUrl    String?  @db.Text
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("truck_documents")
+}
+
+model TruckAssignment {
+  id         Int       @id @default(autoincrement())
+  truckId    Int
+  truck      Truck     @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  employeeId Int
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  startDate  DateTime  @db.Date
+  endDate    DateTime? @db.Date // Null means current assignment
+  status     String    @default("Active") // Active, Completed
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("truck_assignments")
+}
+
+model Customer {
+  id            Int       @id @default(autoincrement())
+  custId        String    @unique // E.g., CUST-0001
+  companyName   String
+  contactPerson String?
+  phone         String
+  email         String?
+  address       String?   @db.Text
+  city          String?
+  country       String    @default("Oman")
+  taxNumber     String? // VAT Registration Number
+  creditLimit   Decimal   @default(0) @db.Decimal(12, 3)
+  paymentTerms  String? // E.g., Net 30
+  status        String    @default("Active") // Active, Inactive
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  trips         Trip[]
+  invoices      Invoice[]
+
+  @@map("customers")
+}
+
+model Trip {
+  id               Int               @id @default(autoincrement())
+  tripId           String            @unique // E.g., TRP-0001
+  tripDate         DateTime          @db.Date
+  truckId          Int
+  truck            Truck             @relation(fields: [truckId], references: [id])
+  driverId         Int
+  driver           Employee          @relation(fields: [driverId], references: [id])
+  customerId       Int
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  origin           String
+  destination      String
+  startTime        DateTime?
+  endTime          DateTime?
+  startingOdometer Int
+  endingOdometer   Int?
+  distance         Int               @default(0) // Calculated endingOdometer - startingOdometer
+  cargo            String?           @db.Text
+  revenue          Decimal           @db.Decimal(12, 3)
+  status           String            @default("Planned") // Planned, In Progress, Completed, Cancelled
+  notes            String?           @db.Text
+  docUrl           String?           @db.Text
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  expenses         TripExpense[]
+  fuelTransactions FuelTransaction[]
+  truckExpenses    TruckExpense[]
+  invoices         InvoiceTrip[]
+  generalExpenses  Expense[]         @relation("TripGeneralExpenses")
+
+  @@map("trips")
+}
+
+model TripExpense {
+  id          Int      @id @default(autoincrement())
+  tripId      Int
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  category    String // Fuel, Toll, Parking, Driver Allowance, Loading/Unloading, Repair, Border/Permit, Other
+  amount      Decimal  @db.Decimal(12, 3)
+  description String?  @db.Text
+  receiptUrl  String?  @db.Text
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("trip_expenses")
+}
+
+model FuelTransaction {
+  id            Int      @id @default(autoincrement())
+  fuelId        String   @unique // E.g., FUL-0001
+  date          DateTime @db.Date
+  truckId       Int
+  truck         Truck    @relation(fields: [truckId], references: [id])
+  driverId      Int
+  driver        Employee @relation(fields: [driverId], references: [id])
+  tripId        Int?
+  trip          Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  odometer      Int
+  fuelStation   String?
+  fuelType      String   @default("Diesel") // Diesel, Petrol
+  liters        Decimal  @db.Decimal(10, 3)
+  pricePerLiter Decimal  @db.Decimal(10, 3)
+  totalAmount   Decimal  @db.Decimal(12, 3) // Liters * pricePerLiter
+  paymentMethod String   @default("Cash") // Cash, Fuel Card, Corporate Account
+  receiptUrl    String?  @db.Text
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("fuel_transactions")
+}
+
+model TruckMaintenance {
+  id                  Int       @id @default(autoincrement())
+  truckId             Int
+  truck               Truck     @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  date                DateTime  @db.Date
+  maintenanceType     String // Oil Change, General Service, Tyre Replacement, Engine Repair, Brake Repair, Electrical, Accident Repair, Other
+  description         String?   @db.Text
+  odometer            Int
+  workshop            String?
+  cost                Decimal   @db.Decimal(12, 3)
+  receiptUrl          String?   @db.Text
+  nextServiceDate     DateTime? @db.Date
+  nextServiceOdometer Int?
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@map("truck_maintenance")
+}
+
+model TruckExpense {
+  id          Int      @id @default(autoincrement())
+  truckId     Int
+  truck       Truck    @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  category    String // Fuel, Maintenance, Repair, Tyres, Oil, Toll, Parking, Insurance, Registration, Fine, Border/Permit, Other
+  amount      Decimal  @db.Decimal(12, 3)
+  description String?  @db.Text
+  receiptUrl  String?  @db.Text
+  tripId      Int?
+  trip        Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("truck_expenses")
+}
+
+model Invoice {
+  id             Int              @id @default(autoincrement())
+  invoiceNumber  String           @unique // E.g., INV-0001
+  customerId     Int
+  customer       Customer         @relation(fields: [customerId], references: [id])
+  date           DateTime         @db.Date
+  dueDate        DateTime         @db.Date
+  subtotal       Decimal          @db.Decimal(12, 3)
+  taxAmount      Decimal          @default(0) @db.Decimal(12, 3)
+  discountAmount Decimal          @default(0) @db.Decimal(12, 3)
+  totalAmount    Decimal          @db.Decimal(12, 3) // subtotal + tax - discount
+  status         String           @default("Draft") // Draft, Sent, Partially Paid, Paid, Overdue, Cancelled
+  notes          String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  trips          InvoiceTrip[]
+  payments       InvoicePayment[]
+
+  @@map("invoices")
+}
+
+model InvoiceTrip {
+  id        Int      @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tripId    Int
+  trip      Trip     @relation(fields: [tripId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([invoiceId, tripId])
+  @@map("invoice_trips")
+}
+
+model InvoicePayment {
+  id              Int      @id @default(autoincrement())
+  invoiceId       Int
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  date            DateTime @db.Date
+  amount          Decimal  @db.Decimal(12, 3)
+  paymentMethod   String   @default("Bank Transfer") // Cash, Cheque, Bank Transfer
+  referenceNumber String?
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("invoice_payments")
+}
+
+model SalaryPayment {
+  id               Int       @id @default(autoincrement())
+  employeeId       Int
+  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salaryMonth      String // Format: YYYY-MM (e.g. 2026-08)
+  basicSalary      Decimal   @db.Decimal(12, 3)
+  allowances       Decimal   @db.Decimal(12, 3) // Sum of structures
+  overtime         Decimal   @default(0) @db.Decimal(12, 3)
+  bonus            Decimal   @default(0) @db.Decimal(12, 3)
+  deductions       Decimal   @default(0) @db.Decimal(12, 3) // Sum of advance/fine/other deductions
+  netSalary        Decimal   @db.Decimal(12, 3) // (Basic + Allowances + OT + Bonus) - Deductions
+  paymentDate      DateTime? @db.Date // Null means Pending/Unpaid
+  paymentMethod    String? // Cash, Bank Transfer, Cheque
+  paymentReference String?
+  status           String    @default("Pending") // Pending, Partially Paid, Paid
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("salary_payments")
+}
+
+model Fine {
+  id            Int       @id @default(autoincrement())
+  employeeId    Int?
+  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  truckId       Int?
+  truck         Truck?    @relation(fields: [truckId], references: [id], onDelete: SetNull)
+  date          DateTime  @db.Date
+  fineType      String // E.g., Speeding, Overloading, Parking
+  amount        Decimal   @db.Decimal(12, 3)
+  authority     String    @default("ROP") // Royal Oman Police
+  description   String?   @db.Text
+  assignedTo    String    @default("Driver") // Driver, Company
+  paymentStatus String    @default("Unpaid") // Unpaid, Paid, Deducted
+  receiptUrl    String?   @db.Text
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("fines")
+}
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  type      String // Expiry, Maintenance, Invoice, Salary
+  title     String
+  message   String    @db.Text
+  status    String    @default("Unread") // Unread, Read, Archived
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String // E.g., Employee Created, Fuel Added
+  module      String // E.g., Employees, Fuel
+  recordId    String? // E.g., EMP-0001, TRK-0002
+  description String   @db.Text
+  timestamp   DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model Expense {
+  id            Int       @id @default(autoincrement())
+  expenseId     String    @unique // E.g., EXP-0001
+  date          DateTime  @db.Date
+  category      String
+  description   String    @db.Text
+  amount        Decimal   @db.Decimal(12, 3)
+  paymentMethod String    @default("Cash") // Cash, Bank Transfer, Cheque, Card
+  paidBy        String?
+  approved      Boolean   @default(false)
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  truckId       Int?
+  truck         Truck?    @relation("TruckGeneralExpenses", fields: [truckId], references: [id], onDelete: SetNull)
+  tripId        Int?
+  trip          Trip?     @relation("TripGeneralExpenses", fields: [tripId], references: [id], onDelete: SetNull)
+  employeeId    Int?
+  employee      Employee? @relation("EmployeeGeneralExpenses", fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@map("expenses")
+}
