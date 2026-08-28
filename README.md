@@ -4,6 +4,14 @@ Welcome to the **Habib Ullah Logistics Fleet & HR Management System**—a custom
 
 ---
 
+## 🏢 Brand & Company Identity
+
+- **Company Name:** Habib Ullah Logistics LLC
+- **Location:** Muscat, Oman
+- **System Initials / Icon:** `HU` (representing **H**abib **U**llah Logistics; updated from `RL` to reflect the company name)
+
+---
+
 ## 🚀 Quick Start (First Time Setup)
 
 To run the application locally on your machine, follow these steps in your terminal at `d:\Mazharhabib\logistics`:
