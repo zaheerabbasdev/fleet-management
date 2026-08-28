@@ -1,14 +1,85 @@
-# Habib Ullah Logistics Fleet & HR Management System
+# Habib Ullah Logistics — Fleet & HR Management System
 
-Welcome to the **Habib Ullah Logistics Fleet & HR Management System**—a custom-built, modern enterprise solution designed for Omani logistics operations. It manages employees, vehicle fleets, trips, fuel efficiency, client invoicing, Royal Oman Police (ROP) fines, and payroll.
+Welcome to the **Habib Ullah Logistics Fleet & HR Management System**—a custom-built, modern enterprise enterprise resource planning (ERP) and operations dashboard designed specifically for Omani logistics operations. This system streamlines driver/employee tracking, fleet maintenance, dispatch logs, fuel monitoring, client billing with Omani VAT, ROP traffic violation tracking, and automated payroll calculations.
 
 ---
 
 ## 🏢 Brand & Company Identity
 
 - **Company Name:** Habib Ullah Logistics LLC
-- **Location:** Muscat, Oman
-- **System Initials / Icon:** `HU` (representing **H**abib **U**llah Logistics; updated from `RL` to reflect the company name)
+- **Location:** Muscat, Sultanate of Oman
+- **System Initials / Badge:** `HU` (representing **H**abib **U**llah Logistics)
+
+---
+
+## 🖥️ Screen Showcases
+
+### 🔑 Authentication / Login
+Secure portal for dispatchers and administrators to access the logistics dashboard.
+![Login Portal](public/Images/login.jpeg)
+
+### 📊 Main Dashboard & Fleet Overview
+Real-time operations command center showing KPI counters, Month-to-Date (MTD) financial summaries, and a critical Document Expiry warning engine (Visas, Passports, Driving Licenses, and Mulkiyas).
+![Dashboard](public/Images/dashboard.jpeg)
+
+### 👥 Employee Profile & Onboarding
+Complete HR records containing contact details, passport/visa compliance records, and driving license tracking to keep logistics compliant with Omani labor laws.
+![Employee Directory](public/Images/employees.jpeg)
+
+### 🚛 Fleet & Vehicle Registry (Mulkiya)
+Manage license plates, chassis numbers, assignments, and Omani Mulkiya/insurance policy expiry alerts.
+![Vehicle Registry](public/Images/trucks.jpeg)
+
+### 🗺️ Logistics Dispatch & Trip Logs
+Dispatches trucks to clients, tracks cargo details, and automatically logs starting/ending odometer readings to calculate fuel efficiency and distance.
+![Trip Logs](public/Images/trips.jpeg)
+
+### ⛽ Smart Fuel Logger
+Logs fuel refills, fuel cards, station names, liters, and cost. Automatically computes total expenses and updates truck odometer levels.
+![Fuel Logger](public/Images/fuels.jpeg)
+
+### 💳 Payroll & Salaries Console
+Combines base salaries and custom monthly allowances (housing, utility, food) while automatically deducting employee advances and logged traffic fines for clean pay slips.
+![Payroll Console](public/Images/payroll.jpeg)
+
+### 💸 Operating Expenses Tracker
+Categorized logging of office overheads, miscellaneous repairs, and admin expenditures to track company cash flow.
+![Expenses Tracker](public/Images/expenses.jpeg)
+
+### 🔧 Workshop & Maintenance Logs
+Logs preventative maintenance and parts repair histories, flagging maintenance costs against specific trucks.
+![Maintenance Logs](public/Images/maintance.jpeg)
+
+### 🤝 Customer & Client Directory
+Client database containing specific details, contact information, and Omani Rial credit limits to prevent dispatching to overdue accounts.
+![Customer Directory](public/Images/customers.jpeg)
+
+### 📄 Billing & Client Invoicing
+Invoices automatically calculate the standard 5% Omani VAT. Tracks payment lifecycle statuses (Draft, Sent, Partially Paid, Paid, Overdue).
+![Invoicing Module](public/Images/invoices.jpeg)
+
+### 🚨 Royal Oman Police (ROP) Fines
+Log traffic safety violations against drivers/trucks with automatic payroll deduction routing.
+![ROP Fines](public/Images/Fines.jpeg)
+
+### 📈 Reports Console
+Generates CSV/Excel formats of operational, payroll, and invoice data for accounting audits.
+![Reports Console](public/Images/reports.jpeg)
+
+### ⚙️ System Settings
+Configurable system parameters, warning thresholds (such as document expiry warnings), and system constants.
+![Settings Configuration](public/Images/settings.jpeg)
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+- **Framework:** Next.js (App Router)
+- **Styling:** Tailwind CSS (Dark Mode Slate/Zinc Premium UI)
+- **Database ORM:** Prisma Client v7
+- **Database Engine:** MySQL / MariaDB
+- **Data Visualization:** Recharts
+- **Icons:** Lucide React
 
 ---
 
@@ -48,57 +119,7 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## 🔐 Credentials (Seeded Account)
+## 🔐 Seeded Credentials (Demo Account)
 
 *   **Email:** `admin@omantrucking.com`
 *   **Password:** `Admin@Oman2026`
-
----
-
-## 🛠️ Architecture & Tech Stack
-
-- **Framework:** Next.js (App Router)
-- **Styling:** Tailwind CSS (Dark Mode Slate/Zinc Premium theme)
-- **Database ORM:** Prisma Client v7
-- **Database:** MySQL
-- **Charts:** Recharts
-- **Icons:** Lucide React
-
----
-
-## 📖 Module Workflows & How It Works
-
-### 1. Dashboard (Overview)
-- **KPI Summary:** Displays real-time counts for active employees, available trucks, Month-to-Date (MTD) revenue, and outstanding invoices.
-- **Financial Breakdown:** Automatically sums MTD fuel expenses, MTD salaries, and operation expenses for quick review.
-- **Important Expiry Alerts:** Placed high up on the dashboard. It scans all visa, passport, driving license, and vehicle registration (Mulkiya) documents, surfacing warning cards for items expiring within the configurable warning window (default: 30 days) or already expired.
-
-### 2. Employee Profile & Document Center
-- **Expatriate and Omani Tracking:** Supports full onboarding with Alt-Phone, Father's Name, Nationality, and Status (Active, Inactive, On Leave, Returned Home).
-- **Compliance Tracking:** Stores passports, visas (with sponsor details), and driving licenses. The system logs issue/expiry dates to fuel the notification alert engine.
-
-### 3. Fleet & Vehicle Registrations (Mulkiya)
-- **Vehicle Profiles:** Manages license plates, chassis numbers, odometer readings, and assignments.
-- **Mulkiya & Insurance Alerts:** Tracks vehicle registrations (Mulkiya) and third-party/comprehensive insurance policies. Expiring vehicle papers trigger dashboard notifications.
-
-### 4. Logistics Dispatch & Trip logs
-- **Operational Logs:** Dispatches trucks to customers with specified cargo, cargo weight, start/end dates, and MTD revenue.
-- **Odometer Flow:** When starting a trip, the system records the starting odometer. When ending the trip, the ending odometer is recorded, automatically calculating total distance and updating the truck's main odometer reading.
-
-### 5. Smart Fuel Logger
-- **Litres & Price Tracking:** Records fuel station visits, fuel cards/methods, liters, and price per liter.
-- **Automatic Calculations:** Instantly computes `Total Cost = Liters * Price/Liter` and links transactions to specific trucks, drivers, and trips. It automatically prompts to record the current odometer, ensuring fuel efficiency tracking.
-
-### 6. Payroll & Salaries Console
-- **Compensation Structure:** Stores base salary and customizable monthly allowances (housing, food, utility).
-- **Deductions Integration:** Auto-calculates deductions by looking up outstanding employee advances and traffic fines logged for the month.
-- **Salary History:** Generates monthly payroll drafts, tracks payment status (Pending, Partially Paid, Paid), and keeps audit logs.
-
-### 7. Royal Oman Police (ROP) Fines
-- **Traffic Safety Violations:** ROP speed/weight violations can be logged against a driver and/or a truck.
-- **Payroll Deduction:** Fines are flag-marked for auto-deduction from the driver's next salary cycle.
-
-### 8. Billing & Client Invoicing
-- **VAT Engine:** Generates tax invoices with Omani VAT (5% standard rate).
-- **Payment Collection:** Operators can record payments directly on the invoice detail page (Cash, Bank Transfer, Cheque). Invoice status updates dynamically (`Draft` ➔ `Sent` ➔ `Partially Paid` ➔ `Paid` ➔ `Overdue`).
-- **Credit Limits:** Prevents shipping to customers who exceed their defined OMR Credit Limits.
