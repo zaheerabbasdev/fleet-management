@@ -82,7 +82,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         <div className="flex h-16 items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950">
           <Link href="/dashboard" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
             <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-600 font-bold text-white">
-              RL
+              HU
             </div>
             <div>
               <span className="font-bold text-white text-sm block">Habib Ullah Logistics</span>
