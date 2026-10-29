@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const employeeUpdateSchema = z.object({
@@ -71,7 +72,7 @@ export async function GET(
     return NextResponse.json(employee);
   } catch (error) {
     console.error("GET Employee details error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -137,7 +138,7 @@ export async function PUT(
     return NextResponse.json({ success: true, employee: updatedEmployee });
   } catch (error) {
     console.error("PUT Employee edit error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -195,6 +196,6 @@ export async function DELETE(
     return NextResponse.json({ success: true, employee: archivedEmployee });
   } catch (error) {
     console.error("DELETE Employee archive error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

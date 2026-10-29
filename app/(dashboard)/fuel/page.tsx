@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import FuelForm from "@/components/forms/FuelForm";
 import Link from "next/link";
 import {
   Plus, Fuel, Truck, User, Droplets, DollarSign,
@@ -8,6 +10,7 @@ import {
 } from "lucide-react";
 
 export default function FuelPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -47,13 +50,14 @@ export default function FuelPage() {
             Record and monitor diesel consumption and fuel costs across all trucks.
           </p>
         </div>
-        <Link
-          href="/fuel/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Log Fuel
-        </Link>
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -187,6 +191,18 @@ export default function FuelPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add fuel" onClose={() => setShowForm(false)}>
+          <FuelForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchFuel();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

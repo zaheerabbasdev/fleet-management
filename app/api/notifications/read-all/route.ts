@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 
 export async function POST() {
   try {
@@ -10,6 +11,6 @@ export async function POST() {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Read-all notifications error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

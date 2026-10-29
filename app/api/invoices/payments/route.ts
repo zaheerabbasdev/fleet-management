@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const paymentSchema = z.object({
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     return NextResponse.json(payments);
   } catch (error) {
     console.error("GET InvoicePayments error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -59,6 +60,27 @@ export async function POST(request: Request) {
 
     if (!invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    if (invoice.status === "Cancelled") {
+      return NextResponse.json(
+        { error: "This invoice is cancelled, so it cannot receive payments" },
+        { status: 400 }
+      );
+    }
+
+    const alreadyPaid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const balance = Number((Number(invoice.totalAmount) - alreadyPaid).toFixed(3));
+    if (data.amount > balance) {
+      return NextResponse.json(
+        {
+          error:
+            balance <= 0
+              ? "This invoice is already fully paid"
+              : `Payment is more than the balance. Only OMR ${balance.toFixed(3)} is left to pay`,
+        },
+        { status: 400 }
+      );
     }
 
     // Create payment and update invoice status inside a transaction
@@ -100,13 +122,13 @@ export async function POST(request: Request) {
         action: "Invoice Payment Added",
         module: "Invoices",
         recordId: invoice.invoiceNumber,
-        description: `Added payment of OMR ${data.amount} for invoice ${invoice.invoiceNumber}. New Status: ${invoice.status}`,
+        description: `Added payment of OMR ${data.amount} for invoice ${invoice.invoiceNumber}. `,
       },
     }).catch(console.error);
 
     return NextResponse.json({ success: true, payment }, { status: 201 });
   } catch (error) {
     console.error("POST InvoicePayment error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

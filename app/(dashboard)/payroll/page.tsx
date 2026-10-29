@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import PayrollForm from "@/components/forms/PayrollForm";
 import Link from "next/link";
 import {
   Plus, Wallet, Users, ChevronDown, Check,
@@ -19,6 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function PayrollPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [summary, setSummary] = useState({ totalGross: 0, totalNet: 0 });
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
@@ -61,13 +64,14 @@ export default function PayrollPage() {
             Process monthly salaries, bonuses, deductions, and advances for all employees.
           </p>
         </div>
-        <Link
-          href="/payroll/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Payroll
-        </Link>
+        </button>
       </div>
 
       {/* Month/Year filter */}
@@ -172,6 +176,18 @@ export default function PayrollPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add salary" onClose={() => setShowForm(false)}>
+          <PayrollForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchPayroll();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

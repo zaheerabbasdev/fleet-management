@@ -40,17 +40,18 @@ Copy `.env.example` to `.env`. Variables: `DATABASE_URL` (mysql://…), `AUTH_SE
 ## Structure
 
 - `app/(auth)/login` — login page
-- `app/(dashboard)/<module>/` — `page.tsx` (list), `new/page.tsx`, `[id]/page.tsx` for: customers, dashboard, employees, expenses, fines, fuel, invoices, maintenance, payroll, reports, settings, trips, trucks. Shared shell in `app/(dashboard)/layout.tsx`.
+- `app/(dashboard)/<module>/` — `page.tsx` (list; "Add" opens the form in a modal) and `[id]/page.tsx` (detail) for: customers, dashboard, employees, expenses, fines, fuel, invoices, maintenance, payroll, reports, settings, trips, trucks. Shared shell in `app/(dashboard)/layout.tsx`.
 - `app/api/<module>/route.ts` (+ `[id]/route.ts`) — REST route handlers per module; also `auth/{login,logout}`, `notifications/*`, `upload`, `invoices/payments`, `employees/[id]/{documents,hr}`
 - `components/layout/` — `Header`, `Sidebar`
-- `lib/auth.ts` (JWT + bcrypt helpers), `lib/prisma.ts` (singleton client), `lib/vehicleCategories.ts`
+- `components/Modal.tsx` — pop-up used for all add forms; `components/forms/*Form.tsx` — the add forms (props `onClose`, `onSaved`). Keep form labels in plain, easy English.
+- `lib/api.ts` (`getPaging`, `handleApiError`, `checkLinks` — use these in route handlers), `lib/auth.ts` (JWT + bcrypt helpers), `lib/prisma.ts` (singleton client), `lib/vehicleCategories.ts`
 - `prisma/schema.prisma`, `prisma/migrations/`, `prisma/seed.ts`
 - `proxy.ts` — route protection
 
 ## Conventions (follow the existing code)
 
 - **Auth/proxy**: `proxy.ts` redirects unauthenticated users to `/login?from=…`, and injects `x-user-id`, `x-user-email`, `x-user-role`, `x-user-name` request headers. Route handlers read `x-user-id` for audit logging. `/login` and `/api/auth*` are public; paths containing `.` are treated as static assets.
-- **API handlers**: validate the body with a zod schema (`safeParse`; return `400` with `result.error.issues[0].message`), wrap in try/catch returning `{ error: "Internal Server Error" }` with `500`. List endpoints return `{ items, pagination: { page, pageSize, totalItems, totalPages } }` using `prisma.$transaction([count, findMany])`.
+- **API handlers**: use `getPaging()` for page/pageSize, `checkLinks()` before creating records that point to trucks/drivers/customers/trips (the local DB has no foreign keys), and `handleApiError(error)` in `catch` (maps bad JSON → 400, duplicates → 409). Validate the body with a zod schema (`safeParse`; return `400` with `result.error.issues[0].message`), wrap in try/catch returning `{ error: "Internal Server Error" }` with `500`. List endpoints return `{ items, pagination: { page, pageSize, totalItems, totalPages } }` using `prisma.$transaction([count, findMany])`.
 - **Audit log**: mutating handlers write an `AuditLog` row (`action`, `module`, `recordId`, `description`) with `.catch(console.error)` so logging never fails the request.
 - **Business IDs**: human-readable unique IDs are stored in addition to autoincrement `id` (`empId` EMP-0001, `truckId` TRK-0001, `custId` CUST-0001, `tripId` TRP-0001, `fuelId` FUL-0001, `expenseId` EXP-0001, `invoiceNumber` INV-0001).
 - **Money**: `Decimal(12,3)` in OMR; round computed totals with `Number(x.toFixed(3))`. Invoice total = subtotal + tax − discount. Salary net = (basic + allowances + overtime + bonus) − deductions.
@@ -65,4 +66,6 @@ Copy `.env.example` to `.env`. Variables: `DATABASE_URL` (mysql://…), `AUTH_SE
 - `.env.example` currently contains what look like real Cloudinary credentials. Replace with placeholders and rotate the key/secret.
 - `prisma/schema.prisma` has no `url` in the datasource (Prisma 7: connection comes from `prisma.config.ts` / the adapter in `lib/prisma.ts`).
 - API handlers use `any` in places (e.g. `where: any`); prefer `Prisma.<Model>WhereInput` for new code.
+- The local MySQL tables are MyISAM (no foreign keys, cascades or transactions); `prisma/convert_to_innodb.sql` switches them to InnoDB.
+- Dashboard and Reports use the same cost rules (salary = basic + allowances + overtime + bonus; other costs = Expense + TruckExpense; cancelled trips excluded) — keep them in sync.
 - Role-based authorization is not enforced in route handlers yet; the role is only available via the `x-user-role` header.

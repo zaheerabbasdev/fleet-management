@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -67,7 +68,7 @@ export async function GET(
     return NextResponse.json({ ...invoice, paidAmount });
   } catch (error) {
     console.error("GET Invoice error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -107,7 +108,7 @@ export async function PUT(
     return NextResponse.json({ success: true, invoice });
   } catch (error) {
     console.error("PUT Invoice error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -145,6 +146,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE Invoice error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

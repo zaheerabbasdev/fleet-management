@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkLinks, getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const invoiceSchema = z.object({
@@ -21,9 +22,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const customerId = searchParams.get("customerId") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "20");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 20);
 
     const where: any = {};
     if (status) where.status = status;
@@ -94,7 +93,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Invoices error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -108,6 +107,9 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    const missingLink = await checkLinks({ customerId: data.customerId });
+    if (missingLink) return missingLink;
 
     // Check duplicate invoiceNumber
     const existing = await prisma.invoice.findUnique({
@@ -163,6 +165,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, invoice }, { status: 201 });
   } catch (error) {
     console.error("POST Invoice error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

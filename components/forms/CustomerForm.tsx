@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert } from "lucide-react";
 
 const OMAN_CITIES = [
   "Muscat", "Salalah", "Sohar", "Nizwa", "Sur", "Ibra", "Rustaq", "Barka",
@@ -11,8 +9,12 @@ const OMAN_CITIES = [
   "Al-Buraimi", "Mudhaibi", "Duqm", "Shinas", "Liwa",
 ];
 
-export default function AddCustomerPage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function CustomerForm({ onClose, onSaved }: FormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -62,8 +64,7 @@ export default function AddCustomerPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to register customer");
 
-      router.push("/customers");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -73,15 +74,6 @@ export default function AddCustomerPage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/customers" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Register New Customer</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Add a new client company with contact details, credit limit, and billing preferences.</p>
-        </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -92,10 +84,10 @@ export default function AddCustomerPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Company Information</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Company details</p>
           <div className="grid gap-5 sm:grid-cols-2 text-xs">
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Customer ID *</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Customer number *</label>
               <input
                 type="text"
                 name="custId"
@@ -120,7 +112,7 @@ export default function AddCustomerPage() {
             </div>
 
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Primary Contact Name</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Contact person</label>
               <input
                 type="text"
                 name="contactName"
@@ -154,7 +146,7 @@ export default function AddCustomerPage() {
               />
             </div>
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Oman VAT Number (TRN)</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">VAT number</label>
               <input
                 type="text"
                 name="vatNumber"
@@ -173,7 +165,7 @@ export default function AddCustomerPage() {
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
               >
-                <option value="">Select City</option>
+                <option value="">Choose city</option>
                 {OMAN_CITIES.map((city) => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -192,7 +184,7 @@ export default function AddCustomerPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Business Address</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Address</label>
               <textarea
                 name="address"
                 rows={2}
@@ -204,10 +196,10 @@ export default function AddCustomerPage() {
             </div>
           </div>
 
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 pt-2">Billing & Credit Settings</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 pt-2">Payment details</p>
           <div className="grid gap-5 sm:grid-cols-2 text-xs">
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Credit Limit (OMR)</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Most they can owe (OMR)</label>
               <input
                 type="number"
                 step="0.001"
@@ -218,19 +210,19 @@ export default function AddCustomerPage() {
               />
             </div>
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payment Terms</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">When do they pay?</label>
               <select
                 name="paymentTerms"
                 value={formData.paymentTerms}
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
               >
-                <option value="Immediate">Immediate / Cash on Delivery</option>
-                <option value="Net 15">Net 15 Days</option>
-                <option value="Net 30">Net 30 Days</option>
-                <option value="Net 45">Net 45 Days</option>
-                <option value="Net 60">Net 60 Days</option>
-                <option value="Net 90">Net 90 Days</option>
+                <option value="Immediate">Pay now (cash)</option>
+                <option value="Net 15">Within 15 days</option>
+                <option value="Net 30">Within 30 days</option>
+                <option value="Net 45">Within 45 days</option>
+                <option value="Net 60">Within 60 days</option>
+                <option value="Net 90">Within 90 days</option>
               </select>
             </div>
 
@@ -255,26 +247,23 @@ export default function AddCustomerPage() {
                 className="h-4 w-4 accent-emerald-500"
               />
               <label htmlFor="isActive" className="text-sm text-zinc-300 cursor-pointer">
-                <span className="font-semibold text-emerald-400">Active Customer</span> — eligible for new trips and invoice generation
+                <span className="font-semibold text-emerald-400">Active customer</span> — can be used for new trips and invoices
               </label>
             </div>
           </div>
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link
-            href="/customers"
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300"
-          >
-            Cancel
-          </Link>
+          <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300">
+              Cancel
+            </button>
           <button
             type="submit"
             disabled={saving}
             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Registering..." : "Register Customer"}
+            {saving ? "Saving..." : "Save customer"}
           </button>
         </div>
       </form>

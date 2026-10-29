@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Modal from "@/components/Modal";
 import {
   ArrowLeft, Building, Phone, Mail, MapPin, FileText,
   CreditCard, Package, CheckCircle2, Clock, AlertTriangle,
@@ -210,11 +211,13 @@ export default function InvoiceDetailPage() {
 
       {/* Record Payment Form */}
       {showPayForm && (
-        <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/10 p-5 print:hidden">
-          <h3 className="mb-4 text-sm font-semibold text-emerald-400">Record Payment</h3>
+        <Modal title="Add payment" onClose={() => setShowPayForm(false)}>
+          {error && (
+            <p className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">{error}</p>
+          )}
           <form onSubmit={handleRecordPayment} className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Payment Date *</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Date paid *</label>
               <input type="date" required value={payForm.date}
                 onChange={e => setPayForm({...payForm, date: e.target.value})}
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
@@ -222,7 +225,7 @@ export default function InvoiceDetailPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">
-                Amount (OMR) * <span className="text-zinc-500">(Balance: {balance.toFixed(3)})</span>
+                Amount (OMR) * <span className="text-zinc-500">(Left to pay: {balance.toFixed(3)})</span>
               </label>
               <input type="number" required min="0.001" step="0.001" max={balance}
                 placeholder={balance.toFixed(3)} value={payForm.amount}
@@ -231,7 +234,7 @@ export default function InvoiceDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Payment Method *</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">How was it paid? *</label>
               <select value={payForm.paymentMethod}
                 onChange={e => setPayForm({...payForm, paymentMethod: e.target.value})}
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
@@ -240,7 +243,7 @@ export default function InvoiceDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">Reference / Cheque No.</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Reference or cheque number</label>
               <input value={payForm.referenceNumber}
                 onChange={e => setPayForm({...payForm, referenceNumber: e.target.value})}
                 placeholder="Optional"
@@ -259,7 +262,7 @@ export default function InvoiceDetailPage() {
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60 transition-colors"
               >
                 <CreditCard className="h-4 w-4" />
-                {paying ? "Saving…" : "Record Payment"}
+                {paying ? "Saving…" : "Save payment"}
               </button>
               <button type="button" onClick={() => setShowPayForm(false)}
                 className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
@@ -268,7 +271,7 @@ export default function InvoiceDetailPage() {
               </button>
             </div>
           </form>
-        </div>
+        </Modal>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -1,5 +1,31 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
+
+const round3 = (n: number) => Number(n.toFixed(3));
+
+// Salary cost = basic + allowances + overtime + bonus (same rule as the Reports page)
+async function salaryCost(salaryMonth: string) {
+  const a = await prisma.salaryPayment.aggregate({
+    _sum: { basicSalary: true, allowances: true, overtime: true, bonus: true },
+    where: { salaryMonth },
+  });
+  return (
+    Number(a._sum.basicSalary || 0) +
+    Number(a._sum.allowances || 0) +
+    Number(a._sum.overtime || 0) +
+    Number(a._sum.bonus || 0)
+  );
+}
+
+// Other costs = general expenses (Expenses page) + old per-truck expenses
+async function otherCost(gte: Date, lte: Date) {
+  const [general, truck] = await Promise.all([
+    prisma.expense.aggregate({ _sum: { amount: true }, where: { date: { gte, lte } } }),
+    prisma.truckExpense.aggregate({ _sum: { amount: true }, where: { date: { gte, lte } } }),
+  ]);
+  return Number(general._sum.amount || 0) + Number(truck._sum.amount || 0);
+}
 
 export async function GET(request: Request) {
   try {
@@ -70,13 +96,7 @@ export async function GET(request: Request) {
     const fuelExpenseThisMonth = Number(fuelExpenseAggregation._sum.totalAmount || 0);
 
     // Salary expense
-    const salaryExpenseAggregation = await prisma.salaryPayment.aggregate({
-      _sum: { netSalary: true },
-      where: {
-        salaryMonth: currentYearMonth,
-      },
-    });
-    const salaryExpenseThisMonth = Number(salaryExpenseAggregation._sum.netSalary || 0);
+    const salaryExpenseThisMonth = round3(await salaryCost(currentYearMonth));
 
     // Maintenance cost
     const maintenanceAggregation = await prisma.truckMaintenance.aggregate({
@@ -90,23 +110,15 @@ export async function GET(request: Request) {
     });
     const maintenanceCostThisMonth = Number(maintenanceAggregation._sum.cost || 0);
 
-    // General truck expenses
-    const generalExpensesAggregation = await prisma.truckExpense.aggregate({
-      _sum: { amount: true },
-      where: {
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-    });
-    const generalExpensesThisMonth = Number(generalExpensesAggregation._sum.amount || 0);
+    // General expenses
+    const generalExpensesThisMonth = round3(await otherCost(startOfMonth, endOfMonth));
 
-    const totalExpensesThisMonth =
+    const totalExpensesThisMonth = round3(
       fuelExpenseThisMonth +
-      salaryExpenseThisMonth +
-      maintenanceCostThisMonth +
-      generalExpensesThisMonth;
+        salaryExpenseThisMonth +
+        maintenanceCostThisMonth +
+        generalExpensesThisMonth
+    );
 
     // 5. Customer Outstanding Payments
     const invoices = await prisma.invoice.findMany({
@@ -230,11 +242,7 @@ export async function GET(request: Request) {
       });
       const fuel = Number(fuelAggr._sum.totalAmount || 0);
 
-      const salAggr = await prisma.salaryPayment.aggregate({
-        _sum: { netSalary: true },
-        where: { salaryMonth: yearMonth },
-      });
-      const salaries = Number(salAggr._sum.netSalary || 0);
+      const salaries = round3(await salaryCost(yearMonth));
 
       const maintAggr = await prisma.truckMaintenance.aggregate({
         _sum: { cost: true },
@@ -242,13 +250,9 @@ export async function GET(request: Request) {
       });
       const maint = Number(maintAggr._sum.cost || 0);
 
-      const expAggr = await prisma.truckExpense.aggregate({
-        _sum: { amount: true },
-        where: { date: { gte: monthStart, lte: monthEnd } },
-      });
-      const otherExp = Number(expAggr._sum.amount || 0);
+      const otherExp = round3(await otherCost(monthStart, monthEnd));
 
-      const totalExp = fuel + salaries + maint + otherExp;
+      const totalExp = round3(fuel + salaries + maint + otherExp);
 
       monthsData.push({
         name: label,
@@ -268,6 +272,7 @@ export async function GET(request: Request) {
         trips: true,
         maintenances: true,
         expenses: true,
+        generalExpenses: true,
       },
     });
 
@@ -292,17 +297,21 @@ export async function GET(request: Request) {
     // 9. Truck Profitability
     const truckProfitData = truckList
       .map((t) => {
-        const rev = t.trips.reduce((sum, trip) => sum + Number(trip.revenue), 0);
+        const rev = t.trips
+          .filter((trip) => trip.status !== "Cancelled")
+          .reduce((sum, trip) => sum + Number(trip.revenue), 0);
         const fuelCost = t.fuelLog.reduce((sum, f) => sum + Number(f.totalAmount), 0);
         const maintCost = t.maintenances.reduce((sum, m) => sum + Number(m.cost), 0);
-        const otherCost = t.expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+        const otherCosts =
+          t.expenses.reduce((sum, e) => sum + Number(e.amount), 0) +
+          t.generalExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
-        const profit = rev - (fuelCost + maintCost + otherCost);
+        const profit = rev - (fuelCost + maintCost + otherCosts);
 
         return {
           truck: t.regNumber,
-          revenue: rev,
-          expenses: fuelCost + maintCost + otherCost,
+          revenue: round3(rev),
+          expenses: round3(fuelCost + maintCost + otherCosts),
           profit: Number(profit.toFixed(3)),
         };
       })
@@ -333,9 +342,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Dashboard API Error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error fetching dashboard statistics" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

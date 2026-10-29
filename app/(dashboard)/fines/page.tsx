@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import FineForm from "@/components/forms/FineForm";
 import Link from "next/link";
 import {
   Plus, Search, AlertOctagon, User, Truck,
@@ -15,6 +17,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function FinesPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -59,13 +62,14 @@ export default function FinesPage() {
             Track Royal Oman Police (ROP) and municipal fines for drivers and fleet vehicles.
           </p>
         </div>
-        <Link
-          href="/fines/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Log Fine
-        </Link>
+        </button>
       </div>
 
       {/* Stats row */}
@@ -218,6 +222,18 @@ export default function FinesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add fine" onClose={() => setShowForm(false)}>
+          <FineForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchFines();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

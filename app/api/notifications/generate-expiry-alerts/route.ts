@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 
 /**
  * POST /api/notifications/generate-expiry-alerts
@@ -177,6 +178,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Generate expiry alerts error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

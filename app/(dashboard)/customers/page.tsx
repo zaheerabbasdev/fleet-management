@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import CustomerForm from "@/components/forms/CustomerForm";
 import Link from "next/link";
 import {
   Plus, Building, Phone, Mail, MapPin, 
@@ -8,6 +10,7 @@ import {
 } from "lucide-react";
 
 export default function CustomersPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -44,13 +47,14 @@ export default function CustomersPage() {
             Manage client companies, contacts, and invoice/trip history.
           </p>
         </div>
-        <Link
-          href="/customers/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Customer
-        </Link>
+        </button>
       </div>
 
       {/* Filters */}
@@ -152,6 +156,18 @@ export default function CustomersPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add customer" onClose={() => setShowForm(false)}>
+          <CustomerForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchCustomers();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

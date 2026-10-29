@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import MaintenanceForm from "@/components/forms/MaintenanceForm";
 import Link from "next/link";
 import {
   Plus, Search, Wrench, Truck, Calendar,
@@ -9,6 +11,7 @@ import {
 } from "lucide-react";
 
 export default function MaintenancePage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -55,13 +58,14 @@ export default function MaintenancePage() {
             Record maintenance services, track garage visits, repairs, and schedule next service reminders.
           </p>
         </div>
-        <Link
-          href="/maintenance/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Log Maintenance
-        </Link>
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -206,6 +210,18 @@ export default function MaintenancePage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add repair or service" onClose={() => setShowForm(false)}>
+          <MaintenanceForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchMaintenance();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

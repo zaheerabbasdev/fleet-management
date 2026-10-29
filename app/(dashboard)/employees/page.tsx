@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import EmployeeForm from "@/components/forms/EmployeeForm";
 import Link from "next/link";
 import {
   Search,
@@ -18,6 +20,12 @@ import {
 } from "lucide-react";
 
 export default function EmployeesPage() {
+  const [showForm, setShowForm] = useState(false);
+
+  // The dashboard links here with ?add=1 to open the form straight away
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("add")) setShowForm(true);
+  }, []);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -93,13 +101,14 @@ export default function EmployeesPage() {
             Manage company drivers, HR profiles, licenses, and document expiries.
           </p>
         </div>
-        <Link
-          href="/employees/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <UserPlus className="h-4 w-4" />
           Add Employee
-        </Link>
+        </button>
       </div>
 
       {/* Filters & Search */}
@@ -338,6 +347,18 @@ export default function EmployeesPage() {
           </div>
         )}
       </div>
+
+      {showForm && (
+        <Modal title="Add employee" onClose={() => setShowForm(false)}>
+          <EmployeeForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchEmployees();
+            }}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

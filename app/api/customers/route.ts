@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const customerSchema = z.object({
@@ -23,9 +24,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const isActive = searchParams.get("isActive");
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "20");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 20);
 
     const where: any = {};
     if (isActive !== null && isActive !== "") {
@@ -68,7 +67,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Customers error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -121,6 +120,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, customer }, { status: 201 });
   } catch (error) {
     console.error("POST Customer error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

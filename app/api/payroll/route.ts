@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkLinks, getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const payrollSchema = z.object({
@@ -25,9 +26,7 @@ export async function GET(request: Request) {
     const year = searchParams.get("year") || "";
     const employeeId = searchParams.get("employeeId") || "";
     const status = searchParams.get("status") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "20");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 20);
 
     const where: any = {};
     if (employeeId) where.employeeId = parseInt(employeeId);
@@ -103,7 +102,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET SalaryPayments error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -117,6 +116,9 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    const missingLink = await checkLinks({ employeeId: data.employeeId });
+    if (missingLink) return missingLink;
     const salaryMonth = `${data.year}-${String(data.month).padStart(2, "0")}`;
 
     // Prevent duplicate payroll for same employee+month+year
@@ -165,6 +167,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, payroll: salaryPayment }, { status: 201 });
   } catch (error) {
     console.error("POST SalaryPayment error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

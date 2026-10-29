@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import ExpenseForm from "@/components/forms/ExpenseForm";
 import Link from "next/link";
 import {
   Plus, Search, ReceiptText, Building, Calendar,
@@ -17,6 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ExpensesPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [totalAmount, setTotalAmount] = useState(0);
@@ -63,13 +66,14 @@ export default function ExpensesPage() {
             Track all company expenses by category — maintenance, fuel, office, port fees, and more.
           </p>
         </div>
-        <Link
-          href="/expenses/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Expense
-        </Link>
+        </button>
       </div>
 
       {/* Filters + Total */}
@@ -174,6 +178,18 @@ export default function ExpensesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add expense" onClose={() => setShowForm(false)}>
+          <ExpenseForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchExpenses();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

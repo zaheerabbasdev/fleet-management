@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert, Wrench } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert, Wrench } from "lucide-react";
 
 const MAINTENANCE_TYPES = [
   "Engine Oil & Filter Change",
@@ -38,8 +36,12 @@ const OMAN_WORKSHOPS = [
   "Other Workshop",
 ];
 
-export default function LogMaintenancePage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function MaintenanceForm({ onClose, onSaved }: FormProps) {
 
   const [trucks, setTrucks] = useState<any[]>([]);
   const [loadingTrucks, setLoadingTrucks] = useState(true);
@@ -130,8 +132,7 @@ export default function LogMaintenancePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to log maintenance");
 
-      router.push("/maintenance");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -141,15 +142,6 @@ export default function LogMaintenancePage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/maintenance" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Log Maintenance Event</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Record vehicle servicing, repairs, tyre changes, and next service schedule.</p>
-        </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -167,21 +159,21 @@ export default function LogMaintenancePage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
             <div className="grid gap-5 sm:grid-cols-2 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Truck *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Vehicle *</label>
                 <select
                   required
                   value={formData.truckId}
                   onChange={handleTruckChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value={0}>Choose Truck</option>
+                  <option value={0}>Choose vehicle</option>
                   {trucks.map((t) => (
                     <option key={t.id} value={t.id}>{t.regNumber} — {t.make} {t.model}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Service Date *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Date *</label>
                 <input
                   type="date"
                   name="date"
@@ -193,7 +185,7 @@ export default function LogMaintenancePage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Maintenance Type *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Type of work *</label>
                 <select
                   name="maintenanceType"
                   required
@@ -201,7 +193,7 @@ export default function LogMaintenancePage() {
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value="">Select Type of Work Done</option>
+                  <option value="">Choose type of work</option>
                   {MAINTENANCE_TYPES.map((mt) => (
                     <option key={mt} value={mt}>{mt}</option>
                   ))}
@@ -209,7 +201,7 @@ export default function LogMaintenancePage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Current Odometer (KM) *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Meter reading (KM) *</label>
                 <input
                   type="number"
                   name="odometer"
@@ -220,14 +212,14 @@ export default function LogMaintenancePage() {
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Workshop / Service Centre</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Workshop</label>
                 <select
                   name="workshop"
                   value={formData.workshop}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value="">Select Workshop</option>
+                  <option value="">Choose workshop</option>
                   {OMAN_WORKSHOPS.map((ws) => (
                     <option key={ws} value={ws}>{ws}</option>
                   ))}
@@ -235,7 +227,7 @@ export default function LogMaintenancePage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Total Cost (OMR) *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Cost (OMR) *</label>
                 <input
                   type="number"
                   step="0.001"
@@ -247,7 +239,7 @@ export default function LogMaintenancePage() {
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Next Service Date</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Next service date</label>
                 <input
                   type="date"
                   name="nextServiceDate"
@@ -258,7 +250,7 @@ export default function LogMaintenancePage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Next Service Odometer (KM)</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Next service at (KM)</label>
                 <input
                   type="number"
                   name="nextServiceOdometer"
@@ -270,11 +262,11 @@ export default function LogMaintenancePage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Description / Work Details</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">What was done</label>
                 <textarea
                   name="description"
                   rows={2}
-                  placeholder="Parts replaced, work done, invoices received..."
+                  placeholder="Parts changed, work done..."
                   value={formData.description}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white resize-none"
@@ -306,16 +298,16 @@ export default function LogMaintenancePage() {
           )}
 
           <div className="flex justify-end gap-3">
-            <Link href="/maintenance" className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300">
+            <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300">
               Cancel
-            </Link>
+            </button>
             <button
               type="submit"
               disabled={saving}
               className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Logging..." : "Log Maintenance"}
+              {saving ? "Saving..." : "Save"}
             </button>
           </div>
         </form>

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Save, AlertCircle } from "lucide-react";
+import { Save, AlertCircle } from "lucide-react";
 
-export default function NewEmployeePage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function EmployeeForm({ onClose, onSaved }: FormProps) {
 
   const [formData, setFormData] = useState({
     empId: "",
@@ -56,8 +58,7 @@ export default function NewEmployeePage() {
         throw new Error(data.error || "Failed to create employee");
       }
 
-      router.push("/employees");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
@@ -66,22 +67,8 @@ export default function NewEmployeePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4 border-b border-zinc-800 pb-5">
-        <Link
-          href="/employees"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Add New Employee</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">
-            Register a new employee driver and establish their HR records.
-          </p>
-        </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -95,12 +82,12 @@ export default function NewEmployeePage() {
         {/* Section 1: Employment Information */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-4">
           <h2 className="text-base font-bold text-white border-b border-zinc-800 pb-2">
-            1. Employment Information
+            Job details
           </h2>
           <div className="grid gap-5 sm:grid-cols-3">
             <div>
               <label htmlFor="empId" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Employee ID *
+                Employee number *
               </label>
               <input
                 type="text"
@@ -131,7 +118,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="arrivalDate" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Oman Arrival Date (Expats)
+                Date arrived in Oman (foreigners only)
               </label>
               <input
                 type="date"
@@ -145,7 +132,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="status" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Initial Status
+                Status
               </label>
               <select
                 id="status"
@@ -155,7 +142,7 @@ export default function NewEmployeePage() {
                 className="mt-1.5 block w-full rounded-lg border border-zinc-800 bg-zinc-950/60 py-2 px-3 text-sm text-zinc-300 focus:border-emerald-500 focus:outline-none"
               >
                 <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
+                <option value="On Leave">On leave</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
@@ -165,7 +152,7 @@ export default function NewEmployeePage() {
         {/* Section 2: Personal Information */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-4">
           <h2 className="text-base font-bold text-white border-b border-zinc-800 pb-2">
-            2. Personal Details
+            Personal details
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -186,7 +173,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="fatherName" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Father Name
+                Father&apos;s name
               </label>
               <input
                 type="text"
@@ -255,12 +242,12 @@ export default function NewEmployeePage() {
         {/* Section 3: Contact & Address */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-4">
           <h2 className="text-base font-bold text-white border-b border-zinc-800 pb-2">
-            3. Contact & Address Info
+            Contact and address
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="phone" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Phone Number (Oman) *
+                Phone number *
               </label>
               <input
                 type="tel"
@@ -276,7 +263,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="altPhone" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Alternate Phone / Home Country Phone
+                Other phone (or home country phone)
               </label>
               <input
                 type="tel"
@@ -291,7 +278,7 @@ export default function NewEmployeePage() {
 
             <div className="sm:col-span-2">
               <label htmlFor="email" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Email Address
+                Email
               </label>
               <input
                 type="email"
@@ -306,7 +293,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="currentAddress" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Current Address (Oman)
+                Address in Oman
               </label>
               <textarea
                 id="currentAddress"
@@ -321,7 +308,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="permanentAddress" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Permanent Address (Home Country)
+                Home country address
               </label>
               <textarea
                 id="permanentAddress"
@@ -339,12 +326,12 @@ export default function NewEmployeePage() {
         {/* Section 4: Emergency Contacts */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-4">
           <h2 className="text-base font-bold text-white border-b border-zinc-800 pb-2">
-            4. Emergency Contact
+            Emergency contact
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="emergencyName" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Contact Name
+                Name
               </label>
               <input
                 type="text"
@@ -359,7 +346,7 @@ export default function NewEmployeePage() {
 
             <div>
               <label htmlFor="emergencyPhone" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Contact Phone
+                Phone
               </label>
               <input
                 type="tel"
@@ -374,7 +361,7 @@ export default function NewEmployeePage() {
 
             <div className="sm:col-span-2">
               <label htmlFor="notes" className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Operational Notes
+                Notes
               </label>
               <textarea
                 id="notes"
@@ -382,7 +369,7 @@ export default function NewEmployeePage() {
                 rows={3}
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Add any specific details here (e.g. driving experience, past route familiarity, visa details)"
+                placeholder="Anything else we should know"
                 className="mt-1.5 block w-full rounded-lg border border-zinc-800 bg-zinc-950/60 py-2 px-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
               />
             </div>
@@ -391,19 +378,16 @@ export default function NewEmployeePage() {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-4 border-t border-zinc-800 pt-5">
-          <Link
-            href="/employees"
-            className="rounded-lg border border-zinc-800 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
-          >
-            Cancel
-          </Link>
+          <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors">
+              Cancel
+            </button>
           <button
             type="submit"
             disabled={loading}
             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {loading ? "Saving..." : "Save Employee"}
+            {loading ? "Saving..." : "Save employee"}
           </button>
         </div>
       </form>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import VehicleForm from "@/components/forms/VehicleForm";
 import Link from "next/link";
 import {
   Plus, Search, Truck, AlertTriangle,
@@ -16,6 +18,7 @@ const categoryIcons: Record<string, string> = {
 };
 
 export default function TrucksPage() {
+  const [showForm, setShowForm] = useState(false);
   const [trucks, setTrucks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -76,13 +79,14 @@ export default function TrucksPage() {
             Manage trucks, trailers, cars, vans, and heavy equipment across the entire fleet.
           </p>
         </div>
-        <Link
-          href="/trucks/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Register Vehicle
-        </Link>
+        </button>
       </div>
 
       {/* Category Tabs */}
@@ -155,13 +159,14 @@ export default function TrucksPage() {
           <p className="mt-1 text-xs text-zinc-500">
             Register your first vehicle to begin tracking fleet operations.
           </p>
-          <Link
-            href="/trucks/new"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
-          >
+          <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+        >
             <Plus className="h-4 w-4" />
             Register Vehicle
-          </Link>
+          </button>
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -241,6 +246,18 @@ export default function TrucksPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add vehicle" onClose={() => setShowForm(false)}>
+          <VehicleForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchTrucks();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

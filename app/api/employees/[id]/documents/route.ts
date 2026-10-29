@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 export async function POST(
@@ -180,7 +181,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid document category specified" }, { status: 400 });
   } catch (error) {
     console.error("POST Employee documents error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -231,6 +232,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Unsupported deletion category" }, { status: 400 });
   } catch (error) {
     console.error("DELETE Employee document error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkLinks, getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const fuelSchema = z.object({
@@ -22,9 +23,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const truckId = searchParams.get("truckId") || "";
     const driverId = searchParams.get("driverId") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "20");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 20);
 
     const where: any = {};
     if (truckId) where.truckId = parseInt(truckId);
@@ -56,7 +55,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Fuel error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -70,6 +69,9 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    const missingLink = await checkLinks({ truckId: data.truckId, driverId: data.driverId, tripId: data.tripId });
+    if (missingLink) return missingLink;
 
     // Auto-calculate total amount (Liters * PricePerLiter)
     const totalAmount = Number((data.liters * data.pricePerLiter).toFixed(3));
@@ -115,6 +117,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, fuel, totalAmount }, { status: 201 });
   } catch (error) {
     console.error("POST Fuel error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

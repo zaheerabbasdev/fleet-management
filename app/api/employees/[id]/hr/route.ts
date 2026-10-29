@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 
 export async function POST(
   request: Request,
@@ -142,6 +143,6 @@ export async function POST(
     return NextResponse.json({ error: "Invalid action type specified" }, { status: 400 });
   } catch (error) {
     console.error("POST Employee HR API error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

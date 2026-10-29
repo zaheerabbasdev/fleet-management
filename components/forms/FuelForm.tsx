@@ -1,29 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert, Route } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert, Droplet } from "lucide-react";
 
-export default function RecordTripPage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function FuelForm({ onClose, onSaved }: FormProps) {
 
   const [trucks, setTrucks] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [trips, setTrips] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
-    tripId: "",
-    tripDate: new Date().toISOString().split("T")[0],
+    fuelId: "",
+    date: new Date().toISOString().split("T")[0],
     truckId: 0,
     driverId: 0,
-    customerId: 0,
-    origin: "",
-    destination: "",
-    startingOdometer: 0,
-    cargo: "",
-    revenue: 0,
-    status: "Planned",
+    tripId: 0,
+    odometer: 0,
+    fuelStation: "",
+    fuelType: "Diesel",
+    liters: 0,
+    pricePerLiter: 0.258, // average Oman diesel price per liter
+    paymentMethod: "Fuel Card",
     notes: "",
   });
 
@@ -34,20 +36,23 @@ export default function RecordTripPage() {
   useEffect(() => {
     async function loadOptions() {
       try {
-        const [resTrucks, resDrivers, resCustomers] = await Promise.all([
+        const [resTrucks, resDrivers, resTrips] = await Promise.all([
           fetch("/api/trucks"),
-          fetch("/api/employees"),
-          fetch("/api/customers"),
+          fetch("/api/employees?pageSize=200"),
+          fetch("/api/trips?pageSize=200"),
         ]);
 
-        if (resTrucks.ok && resDrivers.ok && resCustomers.ok) {
+        if (resTrucks.ok && resDrivers.ok) {
           const tData = await resTrucks.json();
           const dData = await resDrivers.json();
-          const cData = await resCustomers.json();
-
-          setTrucks(tData.filter((t: any) => t.status === "Available" || t.status === "On Trip"));
-          setDrivers(dData.filter((e: any) => e.status === "Active"));
-          setCustomers(cData.items || cData);
+          setTrucks(tData);
+          // employees API returns paginated {items, pagination}
+          const empList = dData.items || dData;
+          setDrivers(empList.filter((e: any) => e.status === "Active"));
+        }
+        if (resTrips.ok) {
+          const trData = await resTrips.json();
+          setTrips(trData.items || trData);
         }
       } catch (err) {
         console.error("Failed to load options:", err);
@@ -65,7 +70,7 @@ export default function RecordTripPage() {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "truckId" || name === "driverId" || name === "customerId" || name === "startingOdometer" || name === "revenue"
+        name === "truckId" || name === "driverId" || name === "tripId" || name === "odometer" || name === "liters" || name === "pricePerLiter"
           ? parseFloat(value) || 0
           : value,
     }));
@@ -77,7 +82,7 @@ export default function RecordTripPage() {
     setFormData((prev) => ({
       ...prev,
       truckId: tId,
-      startingOdometer: selectedTruck ? selectedTruck.odometer : 0,
+      odometer: selectedTruck ? selectedTruck.odometer : 0,
     }));
   };
 
@@ -86,26 +91,30 @@ export default function RecordTripPage() {
     setSaving(true);
     setError("");
 
-    if (formData.truckId === 0 || formData.driverId === 0 || formData.customerId === 0) {
-      setError("Please select a valid Truck, Driver, and Customer");
+    if (formData.truckId === 0 || formData.driverId === 0) {
+      setError("Please select a valid Truck and Driver");
       setSaving(false);
       return;
     }
 
     try {
-      const res = await fetch("/api/trips", {
+      const payload = {
+        ...formData,
+        tripId: formData.tripId === 0 ? null : formData.tripId,
+      };
+
+      const res = await fetch("/api/fuel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to record trip");
+        throw new Error(data.error || "Failed to log fuel refill");
       }
 
-      router.push("/trips");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
     } finally {
@@ -113,17 +122,10 @@ export default function RecordTripPage() {
     }
   };
 
+  const totalCost = Number((formData.liters * formData.pricePerLiter).toFixed(3));
+
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/trips" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Record Trip Booking</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Plan a route, dispatch a driver, and set billing revenues.</p>
-        </div>
-      </div>
+    <div className="space-y-6">
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -141,47 +143,31 @@ export default function RecordTripPage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-6">
             <div className="grid gap-5 sm:grid-cols-2 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip Reference ID *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Fuel number *</label>
                 <input
                   type="text"
-                  name="tripId"
+                  name="fuelId"
                   required
-                  placeholder="TRP-0091"
-                  value={formData.tripId}
+                  placeholder="FUL-901"
+                  value={formData.fuelId}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip Dispatch Date *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Date *</label>
                 <input
                   type="date"
-                  name="tripDate"
+                  name="date"
                   required
-                  value={formData.tripDate}
+                  value={formData.date}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2 text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Customer *</label>
-                <select
-                  name="customerId"
-                  required
-                  value={formData.customerId}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
-                >
-                  <option value={0}>Choose Customer</option>
-                  {customers.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.companyName} ({c.custId})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Truck *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Vehicle *</label>
                 <select
                   name="truckId"
                   required
@@ -189,15 +175,15 @@ export default function RecordTripPage() {
                   onChange={handleTruckChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value={0}>Choose Truck</option>
+                  <option value={0}>Choose vehicle</option>
                   {trucks.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.regNumber} - {t.make} ({t.status})</option>
+                    <option key={t.id} value={t.id}>{t.regNumber} - {t.make}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Driver *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Driver *</label>
                 <select
                   name="driverId"
                   required
@@ -213,82 +199,89 @@ export default function RecordTripPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Starting Odometer (KM) *</label>
-                <input
-                  type="number"
-                  name="startingOdometer"
-                  required
-                  value={formData.startingOdometer}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Origin *</label>
-                <input
-                  type="text"
-                  name="origin"
-                  required
-                  placeholder="Muscat / Sohar Port"
-                  value={formData.origin}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Destination *</label>
-                <input
-                  type="text"
-                  name="destination"
-                  required
-                  placeholder="Salalah / Nizwa"
-                  value={formData.destination}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Freight Cargo Details</label>
-                <input
-                  type="text"
-                  name="cargo"
-                  placeholder="24 Tons Cement / Steel"
-                  value={formData.cargo}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip Billing Revenue (OMR) *</label>
-                <input
-                  type="number"
-                  name="revenue"
-                  step="0.001"
-                  required
-                  value={formData.revenue}
-                  onChange={handleChange}
-                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip Status</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip (if any)</label>
                 <select
-                  name="status"
-                  value={formData.status}
+                  name="tripId"
+                  value={formData.tripId}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value="Planned">Planned</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
+                  <option value={0}>No trip</option>
+                  {trips.map((t: any) => (
+                    <option key={t.id} value={t.id}>{t.tripId}: {t.origin} → {t.destination}</option>
+                  ))}
                 </select>
               </div>
 
+              <div>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Meter reading (KM) *</label>
+                <input
+                  type="number"
+                  name="odometer"
+                  required
+                  value={formData.odometer}
+                  onChange={handleChange}
+                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Fuel station</label>
+                <input
+                  type="text"
+                  name="fuelStation"
+                  placeholder="Name of the station"
+                  value={formData.fuelStation}
+                  onChange={handleChange}
+                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">How was it paid?</label>
+                <select
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  onChange={handleChange}
+                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
+                >
+                  <option value="Fuel Card">Fuel card</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Corporate Account">Company account</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Liters *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="liters"
+                  required
+                  value={formData.liters}
+                  onChange={handleChange}
+                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Price per liter (OMR) *</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  name="pricePerLiter"
+                  required
+                  value={formData.pricePerLiter}
+                  onChange={handleChange}
+                  className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
+                />
+              </div>
+
+              <div className="sm:col-span-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-4 flex justify-between items-center">
+                <span className="text-zinc-400 font-medium">Total cost</span>
+                <span className="text-xl font-mono font-bold text-emerald-400">OMR {totalCost.toFixed(3)}</span>
+              </div>
+
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Dispatch / Route Notes</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Notes</label>
                 <textarea
                   name="notes"
                   rows={2}
@@ -301,19 +294,16 @@ export default function RecordTripPage() {
           </div>
 
           <div className="flex justify-end gap-3">
-            <Link
-              href="/trips"
-              className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850"
-            >
+            <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850">
               Cancel
-            </Link>
+            </button>
             <button
               type="submit"
               disabled={saving}
               className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Recording..." : "Record Trip"}
+              {saving ? "Saving..." : "Save fuel"}
             </button>
           </div>
         </form>

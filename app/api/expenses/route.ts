@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkLinks, getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const expenseSchema = z.object({
@@ -23,9 +24,7 @@ export async function GET(request: Request) {
     const category = searchParams.get("category") || "";
     const truckId = searchParams.get("truckId") || "";
     const tripId = searchParams.get("tripId") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "20");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 20);
 
     const where: any = {};
     if (category) where.category = category;
@@ -60,7 +59,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Expenses error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -74,6 +73,9 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    const missingLink = await checkLinks({ truckId: data.truckId, tripId: data.tripId, employeeId: data.employeeId });
+    if (missingLink) return missingLink;
 
     const expense = await prisma.expense.create({
       data: {
@@ -106,6 +108,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, expense }, { status: 201 });
   } catch (error) {
     console.error("POST Expense error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

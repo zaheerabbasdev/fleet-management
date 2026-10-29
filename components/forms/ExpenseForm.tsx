@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert } from "lucide-react";
 
 const EXPENSE_CATEGORIES = [
   "Office & Administration",
@@ -20,8 +18,12 @@ const EXPENSE_CATEGORIES = [
   "Miscellaneous",
 ];
 
-export default function AddExpensePage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function ExpenseForm({ onClose, onSaved }: FormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -72,8 +74,7 @@ export default function AddExpensePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save expense");
 
-      router.push("/expenses");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -83,15 +84,6 @@ export default function AddExpensePage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/expenses" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Log General Expense</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Record office, administrative, and operational expenses.</p>
-        </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -104,7 +96,7 @@ export default function AddExpensePage() {
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
           <div className="grid gap-5 sm:grid-cols-2 text-xs">
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Expense Reference ID *</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Expense number *</label>
               <input
                 type="text"
                 name="expenseId"
@@ -116,7 +108,7 @@ export default function AddExpensePage() {
               />
             </div>
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Expense Date *</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Date *</label>
               <input
                 type="date"
                 name="date"
@@ -128,7 +120,7 @@ export default function AddExpensePage() {
             </div>
 
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Category *</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Type of expense *</label>
               <select
                 name="category"
                 required
@@ -136,14 +128,14 @@ export default function AddExpensePage() {
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
               >
-                <option value="">Select Category</option>
+                <option value="">Choose type</option>
                 {EXPENSE_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payment Method</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">How was it paid?</label>
               <select
                 name="paymentMethod"
                 value={formData.paymentMethod}
@@ -153,7 +145,7 @@ export default function AddExpensePage() {
                 <option value="Cash">Cash</option>
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cheque">Cheque</option>
-                <option value="Corporate Card">Corporate Card</option>
+                <option value="Company card">Company card</option>
               </select>
             </div>
 
@@ -163,7 +155,7 @@ export default function AddExpensePage() {
                 type="text"
                 name="description"
                 required
-                placeholder="Short description of what was purchased or paid for"
+                placeholder="What was bought or paid for"
                 value={formData.description}
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
@@ -184,11 +176,11 @@ export default function AddExpensePage() {
             </div>
 
             <div>
-              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Paid By</label>
+              <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Paid by</label>
               <input
                 type="text"
                 name="paidBy"
-                placeholder="Office Admin / Employee Name"
+                placeholder="Name of the person"
                 value={formData.paidBy}
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
@@ -223,19 +215,16 @@ export default function AddExpensePage() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link
-            href="/expenses"
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850"
-          >
-            Cancel
-          </Link>
+          <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850">
+              Cancel
+            </button>
           <button
             type="submit"
             disabled={saving}
             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Saving..." : "Save Expense"}
+            {saving ? "Saving..." : "Save expense"}
           </button>
         </div>
       </form>

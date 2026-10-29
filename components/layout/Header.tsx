@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { Bell, Menu, ShieldAlert, UserCheck } from "lucide-react";
 import Link from "next/link";
 
+interface NotificationItem {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  createdAt: string;
+}
+
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
@@ -11,16 +19,21 @@ interface HeaderProps {
 export default function Header({ setSidebarOpen }: HeaderProps) {
   const [userName, setUserName] = useState("Administrator");
   const [userRole, setUserRole] = useState("ADMIN");
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Fetch admin profile and notifications
   useEffect(() => {
-    // In Next.js App Router, we can read headers or use a quick client-side user metadata fetch
-    // To keep it simple, we can fetch from an endpoint `/api/auth/me` or fallback to cookies/localStorage.
-    // Let's implement a simple user-info check or fallback to default Salim Al-Harthy
-    setUserName("Salim Al-Harthy");
-    setUserRole("ADMIN");
+    // Show the user who is really logged in
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user) {
+          setUserName(user.name);
+          setUserRole(user.role);
+        }
+      })
+      .catch(() => {});
 
     // Generate fresh expiry alerts then fetch unread notifications
     const fetchNotifications = async () => {

@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert, Plus, X } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert, Plus, X } from "lucide-react";
 
 const VAT_RATE = 0.05; // Oman 5% VAT
 
-export default function CreateInvoicePage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function InvoiceForm({ onClose, onSaved }: FormProps) {
 
   const [customers, setCustomers] = useState<any[]>([]);
   const [availableTrips, setAvailableTrips] = useState<any[]>([]);
@@ -17,20 +19,22 @@ export default function CreateInvoicePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const today = new Date();
-  const due30 = new Date(today);
-  due30.setDate(due30.getDate() + 30);
-
-  const [formData, setFormData] = useState({
-    invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-    customerId: 0,
-    date: today.toISOString().split("T")[0],
-    dueDate: due30.toISOString().split("T")[0],
-    discountAmount: 0,
-    notes: "",
-    status: "Draft",
-    applyVat: true,
+  const [formData, setFormData] = useState(() => {
+    const today = new Date();
+    const due30 = new Date(today);
+    due30.setDate(due30.getDate() + 30);
+    return {
+      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+      customerId: 0,
+      date: today.toISOString().split("T")[0],
+      dueDate: due30.toISOString().split("T")[0],
+      discountAmount: 0,
+      notes: "",
+      status: "Draft",
+      applyVat: true,
+    };
   });
+
 
   useEffect(() => {
     async function loadData() {
@@ -125,8 +129,7 @@ export default function CreateInvoicePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create invoice");
 
-      router.push("/invoices");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -135,16 +138,7 @@ export default function CreateInvoicePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/invoices" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Create Invoice</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Generate a tax invoice for completed trips with Oman 5% VAT applied.</p>
-        </div>
-      </div>
+    <div className="space-y-6">
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -161,10 +155,10 @@ export default function CreateInvoicePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Invoice Meta */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Invoice Details</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Invoice details</p>
             <div className="grid gap-5 sm:grid-cols-2 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Invoice Number *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Invoice number *</label>
                 <input
                   type="text"
                   name="invoiceNumber"
@@ -175,7 +169,7 @@ export default function CreateInvoicePage() {
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Billing Status</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Status</label>
                 <select
                   name="status"
                   value={formData.status}
@@ -183,13 +177,13 @@ export default function CreateInvoicePage() {
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
                   <option value="Draft">Draft</option>
-                  <option value="Sent">Sent to Customer</option>
-                  <option value="Paid">Paid / Settled</option>
+                  <option value="Sent">Sent</option>
+                  <option value="Paid">Paid</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Customer *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Customer *</label>
                 <select
                   name="customerId"
                   required
@@ -197,7 +191,7 @@ export default function CreateInvoicePage() {
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value={0}>Choose Customer</option>
+                  <option value={0}>Choose customer</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>{c.companyName} ({c.custId})</option>
                   ))}
@@ -254,11 +248,11 @@ export default function CreateInvoicePage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Invoice Notes</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Notes</label>
                 <textarea
                   name="notes"
                   rows={2}
-                  placeholder="Payment instructions, bank account details, thank you message..."
+                  placeholder="Bank details or a thank you message"
                   value={formData.notes}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white resize-none"
@@ -274,7 +268,7 @@ export default function CreateInvoicePage() {
                 Trips to Invoice {selectedTrips.length > 0 && <span className="text-emerald-400">({selectedTrips.length} selected)</span>}
               </p>
               {formData.customerId === 0 && (
-                <span className="text-xs text-zinc-600">Select a customer to filter relevant trips</span>
+                <span className="text-xs text-zinc-600">Choose a customer to see their trips</span>
               )}
             </div>
 
@@ -302,7 +296,7 @@ export default function CreateInvoicePage() {
             <div className="max-h-52 overflow-y-auto rounded-lg border border-zinc-800 divide-y divide-zinc-800/60">
               {filteredTrips.length === 0 ? (
                 <div className="p-6 text-center text-xs text-zinc-500">
-                  {formData.customerId === 0 ? "Select a customer to see their trips" : "No trips found for this customer"}
+                  {formData.customerId === 0 ? "Choose a customer to see their trips" : "No trips found for this customer"}
                 </div>
               ) : (
                 filteredTrips
@@ -344,22 +338,22 @@ export default function CreateInvoicePage() {
               <span className="text-base font-mono text-red-400">- OMR {formData.discountAmount.toFixed(3)}</span>
             </div>
             <div className="sm:border-l sm:border-zinc-800 sm:pl-4">
-              <span className="block text-emerald-400 uppercase tracking-wider mb-1">Total Amount</span>
+              <span className="block text-emerald-400 uppercase tracking-wider mb-1">Total</span>
               <span className="text-xl font-mono font-bold text-emerald-400">OMR {totalAmount.toFixed(3)}</span>
             </div>
           </div>
 
           <div className="flex justify-end gap-3">
-            <Link href="/invoices" className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300">
+            <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300">
               Cancel
-            </Link>
+            </button>
             <button
               type="submit"
               disabled={saving}
               className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Creating..." : "Create Invoice"}
+              {saving ? "Saving..." : "Save invoice"}
             </button>
           </div>
         </form>

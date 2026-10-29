@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert, Wallet } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert, Wallet } from "lucide-react";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-export default function AddPayrollPage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function PayrollForm({ onClose, onSaved }: FormProps) {
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
@@ -129,8 +131,7 @@ export default function AddPayrollPage() {
         throw new Error(data.error || "Failed to add payroll record");
       }
 
-      router.push("/payroll");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
     } finally {
@@ -142,16 +143,7 @@ export default function AddPayrollPage() {
   const netSalary = Math.max(0, grossSalary - formData.deductions);
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/payroll" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Generate Employee Payroll</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">Process salary sheets, calculate bonuses, deductions, and payouts.</p>
-        </div>
-      </div>
+    <div className="space-y-6">
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -169,7 +161,7 @@ export default function AddPayrollPage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 space-y-6">
             <div className="grid gap-5 sm:grid-cols-2 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Select Employee *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Employee *</label>
                 <select
                   name="employeeId"
                   required
@@ -177,7 +169,7 @@ export default function AddPayrollPage() {
                   onChange={handleEmployeeChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value={0}>Choose Employee</option>
+                  <option value={0}>Choose employee</option>
                   {employees.map((e: any) => (
                     <option key={e.id} value={e.id}>{e.name} ({e.empId})</option>
                   ))}
@@ -213,7 +205,7 @@ export default function AddPayrollPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Base Salary (OMR) *</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Basic salary (OMR) *</label>
                 <input
                   type="number"
                   step="0.001"
@@ -237,7 +229,7 @@ export default function AddPayrollPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Overtime Bonus (OMR)</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Overtime pay (OMR)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -248,7 +240,7 @@ export default function AddPayrollPage() {
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Trip Bonus (OMR)</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Bonus (OMR)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -260,7 +252,7 @@ export default function AddPayrollPage() {
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Deductions (Fines, Advances)</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Money taken off (fines, advances)</label>
                 <input
                   type="number"
                   step="0.001"
@@ -271,23 +263,23 @@ export default function AddPayrollPage() {
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payment Status</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Is it paid?</label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
                   className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                 >
-                  <option value="Pending">Pending Approval</option>
+                  <option value="Pending">Not paid yet</option>
                   <option value="Approved">Approved</option>
-                  <option value="Paid">Disbursed / Paid</option>
+                  <option value="Paid">Paid</option>
                 </select>
               </div>
 
               {formData.status === "Paid" && (
                 <>
                   <div>
-                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Disbursal Date *</label>
+                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Date paid *</label>
                     <input
                       type="date"
                       name="paymentDate"
@@ -298,24 +290,24 @@ export default function AddPayrollPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payment Method</label>
+                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">How was it paid?</label>
                     <select
                       name="paymentMethod"
                       value={formData.paymentMethod}
                       onChange={handleChange}
                       className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-zinc-300"
                     >
-                      <option value="Bank Transfer">Local Bank Transfer</option>
-                      <option value="Cash">Cash Handout</option>
-                      <option value="Cheque">Bank Cheque</option>
+                      <option value="Bank Transfer">Bank transfer</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Cheque">Cheque</option>
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Transfer Reference ID</label>
+                    <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payment reference</label>
                     <input
                       type="text"
                       name="paymentReference"
-                      placeholder="Bank TXN-10294"
+                      placeholder="Bank reference number"
                       value={formData.paymentReference}
                       onChange={handleChange}
                       className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white"
@@ -341,7 +333,7 @@ export default function AddPayrollPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Payroll Notes</label>
+                <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Notes</label>
                 <textarea
                   name="notes"
                   rows={2}
@@ -354,19 +346,16 @@ export default function AddPayrollPage() {
           </div>
 
           <div className="flex justify-end gap-3">
-            <Link
-              href="/payroll"
-              className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850"
-            >
+            <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-850">
               Cancel
-            </Link>
+            </button>
             <button
               type="submit"
               disabled={saving}
               className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {saving ? "Generating..." : "Generate Payroll"}
+              {saving ? "Saving..." : "Save salary"}
             </button>
           </div>
         </form>

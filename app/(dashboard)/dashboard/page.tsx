@@ -318,7 +318,7 @@ export default function DashboardPage() {
         <h3 className="text-sm font-semibold text-white">Quick Management Shortcuts</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
-            href="/employees/new"
+            href="/employees?add=1"
             className="flex items-center justify-between rounded-lg bg-zinc-950 p-4 border border-zinc-800/80 text-sm hover:border-emerald-600 transition-colors"
           >
             <span>Add New Employee</span>

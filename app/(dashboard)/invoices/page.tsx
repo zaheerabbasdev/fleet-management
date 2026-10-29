@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import InvoiceForm from "@/components/forms/InvoiceForm";
 import Link from "next/link";
 import {
   Plus, Search, FileText, Building, Calendar,
@@ -18,6 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function InvoicesPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -62,13 +65,14 @@ export default function InvoicesPage() {
             Generate invoices for trips, manage customer billing, and track payments.
           </p>
         </div>
-        <Link
-          href="/invoices/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Create Invoice
-        </Link>
+        </button>
       </div>
 
       {/* Summary Widgets */}
@@ -217,6 +221,18 @@ export default function InvoicesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Create invoice" onClose={() => setShowForm(false)}>
+          <InvoiceForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchInvoices();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

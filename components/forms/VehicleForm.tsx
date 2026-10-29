@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldAlert } from "lucide-react";
-import Link from "next/link";
+import { Save, ShieldAlert } from "lucide-react";
 import { VEHICLE_CATEGORIES, getTypesForCategory } from "@/lib/vehicleCategories";
 
-export default function RegisterVehiclePage() {
-  const router = useRouter();
+interface FormProps {
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+export default function VehicleForm({ onClose, onSaved }: FormProps) {
   const [formData, setFormData] = useState({
     truckId: "",
     regNumber: "",
@@ -66,8 +68,7 @@ export default function RegisterVehiclePage() {
         throw new Error(data.error || "Failed to register vehicle");
       }
 
-      router.push("/trucks");
-      router.refresh();
+      onSaved();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
     } finally {
@@ -80,20 +81,7 @@ export default function RegisterVehiclePage() {
   );
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-5">
-        <Link href="/trucks" className="text-zinc-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Register Fleet Vehicle
-          </h1>
-          <p className="mt-1.5 text-sm text-zinc-400">
-            Add any vehicle to the fleet — trucks, trailers, cars, vans, or heavy equipment.
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
 
       {error && (
         <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -137,7 +125,7 @@ export default function RegisterVehiclePage() {
 
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Internal Fleet ID *
+                Vehicle number *
               </label>
               <input
                 type="text"
@@ -151,7 +139,7 @@ export default function RegisterVehiclePage() {
             </div>
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Registration / Mulkiya Number *
+                Registration (Mulkiya) number *
               </label>
               <input
                 type="text"
@@ -196,7 +184,7 @@ export default function RegisterVehiclePage() {
             {/* Cascading type dropdown */}
             <div className="sm:col-span-2">
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Vehicle Type *
+                Type *
               </label>
               <select
                 name="truckType"
@@ -214,7 +202,7 @@ export default function RegisterVehiclePage() {
 
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Manufacturer / Make *
+                Make (brand) *
               </label>
               <input
                 type="text"
@@ -228,7 +216,7 @@ export default function RegisterVehiclePage() {
             </div>
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Model Name *
+                Model *
               </label>
               <input
                 type="text"
@@ -243,7 +231,7 @@ export default function RegisterVehiclePage() {
 
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Manufacturing Year *
+                Year *
               </label>
               <input
                 type="number"
@@ -258,7 +246,7 @@ export default function RegisterVehiclePage() {
             </div>
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Starting Odometer (KM) *
+                Meter reading (KM) *
               </label>
               <input
                 type="number"
@@ -273,7 +261,7 @@ export default function RegisterVehiclePage() {
 
             <div className="sm:col-span-2">
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                VIN / Chassis Number *
+                Chassis number *
               </label>
               <input
                 type="text"
@@ -301,7 +289,7 @@ export default function RegisterVehiclePage() {
             </div>
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
-                Purchase Date
+                Date bought
               </label>
               <input
                 type="date"
@@ -336,7 +324,7 @@ export default function RegisterVehiclePage() {
               <textarea
                 name="notes"
                 rows={3}
-                placeholder="Additional notes about this vehicle..."
+                placeholder="Anything else about this vehicle"
                 value={formData.notes}
                 onChange={handleChange}
                 className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white resize-none focus:border-emerald-500 focus:outline-none"
@@ -346,19 +334,16 @@ export default function RegisterVehiclePage() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link
-            href="/trucks"
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800"
-          >
-            Cancel
-          </Link>
+          <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-800">
+              Cancel
+            </button>
           <button
             type="submit"
             disabled={saving}
             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {saving ? "Registering..." : "Register Vehicle"}
+            {saving ? "Saving..." : "Save vehicle"}
           </button>
         </div>
       </form>

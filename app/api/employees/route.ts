@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 // Zod Schema for validation
@@ -29,12 +30,10 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const nationality = searchParams.get("nationality") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "10");
+    const { page, pageSize, skip } = getPaging(searchParams, 10);
     const sortField = searchParams.get("sortField") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
-    const skip = (page - 1) * pageSize;
 
     // Build query conditions
     const where: any = {};
@@ -104,7 +103,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Employees API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -172,6 +171,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, employee }, { status: 201 });
   } catch (error) {
     console.error("POST Employee API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkLinks, getPaging, handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const tripSchema = z.object({
@@ -26,9 +27,7 @@ export async function GET(request: Request) {
     const truckId = searchParams.get("truckId") || "";
     const driverId = searchParams.get("driverId") || "";
     const customerId = searchParams.get("customerId") || "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "15");
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, skip } = getPaging(searchParams, 15);
 
     const where: any = {};
     if (status) where.status = status;
@@ -80,7 +79,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Trips error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -94,6 +93,9 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    const missingLink = await checkLinks({ truckId: data.truckId, driverId: data.driverId, customerId: data.customerId });
+    if (missingLink) return missingLink;
 
     // Validate odometer: ending must be >= starting
     if (data.endingOdometer !== null && data.endingOdometer !== undefined) {
@@ -159,6 +161,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, trip }, { status: 201 });
   } catch (error) {
     console.error("POST Trip error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

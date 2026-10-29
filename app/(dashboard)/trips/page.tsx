@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Modal from "@/components/Modal";
+import TripForm from "@/components/forms/TripForm";
 import Link from "next/link";
 import {
   Plus, Search, MapPin, Truck, User, Building,
@@ -16,6 +18,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function TripsPage() {
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
@@ -55,13 +58,14 @@ export default function TripsPage() {
             Record and track every truck trip, revenue, and expenses in real time.
           </p>
         </div>
-        <Link
-          href="/trips/new"
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Record Trip
-        </Link>
+        </button>
       </div>
 
       {/* Filters */}
@@ -221,6 +225,18 @@ export default function TripsPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showForm && (
+        <Modal title="Add trip" onClose={() => setShowForm(false)}>
+          <TripForm
+            onClose={() => setShowForm(false)}
+            onSaved={() => {
+              setShowForm(false);
+              fetchTrips();
+            }}
+          />
+        </Modal>
       )}
     </div>
   );

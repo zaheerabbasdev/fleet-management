@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
+
+const round3 = (n: number) => Number(n.toFixed(3));
 
 export async function GET(request: Request) {
   try {
@@ -11,9 +14,9 @@ export async function GET(request: Request) {
     const endDate = new Date(year + 1, 0, 1);
 
     // 1. Fetch all financial components in parallel
-    const [trips, fuel, maintenance, generalExpenses, salaries] = await prisma.$transaction([
+    const [trips, fuel, maintenance, generalExpenses, truckExpenses, salaries] = await prisma.$transaction([
       prisma.trip.findMany({
-        where: { tripDate: { gte: startDate, lt: endDate } },
+        where: { tripDate: { gte: startDate, lt: endDate }, status: { not: "Cancelled" } },
         select: { revenue: true, tripDate: true },
       }),
       prisma.fuelTransaction.findMany({
@@ -28,6 +31,10 @@ export async function GET(request: Request) {
         where: { date: { gte: startDate, lt: endDate } },
         select: { amount: true, date: true },
       }),
+      prisma.truckExpense.findMany({
+        where: { date: { gte: startDate, lt: endDate } },
+        select: { amount: true, date: true },
+      }),
       prisma.salaryPayment.findMany({
         where: { salaryMonth: { startsWith: `${year}-` } },
         select: { netSalary: true, allowances: true, overtime: true, bonus: true, basicSalary: true, salaryMonth: true },
@@ -38,12 +45,14 @@ export async function GET(request: Request) {
     const totalRevenue = trips.reduce((sum: number, t: any) => sum + Number(t.revenue), 0);
     const totalFuel = fuel.reduce((sum: number, f: any) => sum + Number(f.totalAmount), 0);
     const totalMaintenance = maintenance.reduce((sum: number, m: any) => sum + Number(m.cost), 0);
-    const totalGeneral = generalExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+    const totalGeneral =
+      generalExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0) +
+      truckExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
     const totalSalaries = salaries.reduce((sum: number, s: any) =>
       sum + Number(s.basicSalary) + Number(s.allowances) + Number(s.overtime) + Number(s.bonus), 0);
 
     const totalExpenses = totalFuel + totalMaintenance + totalGeneral + totalSalaries;
-    const netProfit = totalRevenue - totalExpenses;
+    const netProfit = round3(totalRevenue - totalExpenses);
 
     // 3. Monthly breakdowns
     const monthlyReport: Record<number, { revenue: number; fuel: number; maintenance: number; general: number; salaries: number }> = {};
@@ -63,7 +72,7 @@ export async function GET(request: Request) {
       const month = new Date(m.date).getMonth();
       monthlyReport[month].maintenance += Number(m.cost);
     });
-    generalExpenses.forEach((e: any) => {
+    [...generalExpenses, ...truckExpenses].forEach((e: any) => {
       const month = new Date(e.date).getMonth();
       monthlyReport[month].general += Number(e.amount);
     });
@@ -85,9 +94,9 @@ export async function GET(request: Request) {
       const monthExpenses = data.fuel + data.maintenance + data.general + data.salaries;
       return {
         month: new Date(year, mIdx, 1).toLocaleString("en-US", { month: "short" }),
-        revenue: data.revenue,
-        expenses: monthExpenses,
-        profit: data.revenue - monthExpenses,
+        revenue: round3(data.revenue),
+        expenses: round3(monthExpenses),
+        profit: round3(data.revenue - monthExpenses),
       };
     });
 
@@ -99,7 +108,7 @@ export async function GET(request: Request) {
         regNumber: true,
         trips: {
           where: { tripDate: { gte: startDate, lt: endDate } },
-          select: { revenue: true },
+          select: { revenue: true, status: true },
         },
         fuelLog: {
           where: { date: { gte: startDate, lt: endDate } },
@@ -109,31 +118,44 @@ export async function GET(request: Request) {
           where: { date: { gte: startDate, lt: endDate } },
           select: { cost: true },
         },
+        expenses: {
+          where: { date: { gte: startDate, lt: endDate } },
+          select: { amount: true },
+        },
+        generalExpenses: {
+          where: { date: { gte: startDate, lt: endDate } },
+          select: { amount: true },
+        },
       },
     });
 
     const truckProfitability = trucks.map((t) => {
-      const rev = t.trips.reduce((sum, tr) => sum + Number(tr.revenue), 0);
+      const rev = t.trips
+        .filter((tr) => tr.status !== "Cancelled")
+        .reduce((sum, tr) => sum + Number(tr.revenue), 0);
       const fCost = t.fuelLog.reduce((sum, fl) => sum + Number(fl.totalAmount), 0);
       const mCost = t.maintenances.reduce((sum, mc) => sum + Number(mc.cost), 0);
-      const profit = rev - (fCost + mCost);
+      const oCost =
+        t.expenses.reduce((sum, e) => sum + Number(e.amount), 0) +
+        t.generalExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+      const profit = round3(rev - (fCost + mCost + oCost));
       return {
         regNumber: t.regNumber,
         truckId: t.truckId,
-        revenue: rev,
-        expenses: fCost + mCost,
+        revenue: round3(rev),
+        expenses: round3(fCost + mCost + oCost),
         profit,
       };
     }).sort((a, b) => b.profit - a.profit).slice(0, 10);
 
     return NextResponse.json({
       summary: {
-        revenue: totalRevenue,
-        fuel: totalFuel,
-        maintenance: totalMaintenance,
-        salaries: totalSalaries,
-        general: totalGeneral,
-        expenses: totalExpenses,
+        revenue: round3(totalRevenue),
+        fuel: round3(totalFuel),
+        maintenance: round3(totalMaintenance),
+        salaries: round3(totalSalaries),
+        general: round3(totalGeneral),
+        expenses: round3(totalExpenses),
         profit: netProfit,
       },
       monthlyBreakdown: monthlyArray,
@@ -141,6 +163,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET Reports error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -459,7 +459,7 @@ export default function EmployeeProfilePage({
             <h3 className="text-base font-bold text-white border-b border-zinc-800 pb-3 mb-5">Personal Registration details</h3>
             <div className="grid gap-y-4 gap-x-6 sm:grid-cols-2 text-xs">
               <p><span className="text-zinc-500 font-medium block">Full Name:</span> <span className="text-zinc-200 text-sm font-semibold block mt-0.5">{employee.name}</span></p>
-              <p><span className="text-zinc-500 font-medium block">Father's Name:</span> <span className="text-zinc-200 text-sm font-semibold block mt-0.5">{employee.fatherName || "N/A"}</span></p>
+              <p><span className="text-zinc-500 font-medium block">Father&apos;s Name:</span> <span className="text-zinc-200 text-sm font-semibold block mt-0.5">{employee.fatherName || "N/A"}</span></p>
               <p><span className="text-zinc-500 font-medium block">Date of Birth:</span> <span className="text-zinc-200 block mt-0.5">{employee.dob ? new Date(employee.dob).toLocaleDateString("en-GB") : "N/A"}</span></p>
               <p><span className="text-zinc-500 font-medium block">Gender:</span> <span className="text-zinc-200 block mt-0.5">{employee.gender || "N/A"}</span></p>
               <p><span className="text-zinc-500 font-medium block">Nationality:</span> <span className="text-zinc-200 block mt-0.5 font-semibold">{employee.nationality}</span></p>

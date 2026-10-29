@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { handleApiError } from "@/lib/api";
 import { z } from "zod";
 
 const truckCreateSchema = z.object({
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
     return NextResponse.json(formattedTrucks);
   } catch (error) {
     console.error("GET Trucks API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -131,6 +132,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, truck }, { status: 201 });
   } catch (error) {
     console.error("POST Truck error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return handleApiError(error);
   }
 }
