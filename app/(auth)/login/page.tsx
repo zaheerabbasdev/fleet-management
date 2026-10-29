@@ -138,7 +138,7 @@ export default function LoginPage() {
             <span className="text-xl font-bold tracking-wider">OMR</span>
           </div>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-white">
-            Habib Ullah Logistics
+            Logistics
           </h2>
           <p className="mt-2 text-sm text-zinc-400">
             Fleet &amp; Employee Management System • Oman

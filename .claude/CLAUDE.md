@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Project
 
-**Habib Ullah Logistics — Fleet & HR Management System**: an internal ERP/operations dashboard for an Omani logistics company (Muscat). Covers employees/HR documents, fleet (trucks, Mulkiya/insurance), trips/dispatch, fuel, maintenance, payroll, advances, ROP fines, customers, invoicing (5% Omani VAT), general expenses, reports, notifications and settings. Currency is OMR (3 decimal places).
+**Logistics — Fleet & HR Management System**: an internal ERP/operations dashboard for an Omani logistics company (Muscat). Covers employees/HR documents, fleet (trucks, Mulkiya/insurance), trips/dispatch, fuel, maintenance, payroll, advances, ROP fines, customers, invoicing (5% Omani VAT), general expenses, reports, notifications and settings. Currency is OMR (3 decimal places).
 
 The app lives in `d:\Mazharhabib\logistics` (the parent folder only contains it).
 

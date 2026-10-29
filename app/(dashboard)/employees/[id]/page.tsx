@@ -47,7 +47,7 @@ export default function EmployeeProfilePage({
   const [visaForm, setVisaForm] = useState({
     visaNumber: "",
     visaType: "Work Visa",
-    sponsor: "Habib Ullah Logistics LLC",
+    sponsor: "Logistics LLC",
     issueDate: "",
     expiryDate: "",
     status: "Valid",
@@ -657,7 +657,7 @@ export default function EmployeeProfilePage({
                     type="text"
                     value={visaForm.sponsor}
                     onChange={(e) => setVisaForm({ ...visaForm, sponsor: e.target.value })}
-                    placeholder="Habib Ullah Logistics LLC"
+                    placeholder="Logistics LLC"
                     className="w-full rounded border border-zinc-800 bg-zinc-950/60 p-2.5 text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>

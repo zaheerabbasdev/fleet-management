@@ -65,7 +65,7 @@ export default function Header({ setSidebarOpen }: HeaderProps) {
 
       {/* Header Title / Search bar space */}
       <div className="hidden sm:block">
-        <h1 className="text-lg font-semibold text-white">Habib Ullah Fleet System</h1>
+        <h1 className="text-lg font-semibold text-white">Logistics Fleet System</h1>
       </div>
 
       {/* Right Side Icons & Profile */}

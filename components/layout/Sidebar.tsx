@@ -85,7 +85,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               HU
             </div>
             <div>
-              <span className="font-bold text-white text-sm block">Habib Ullah Logistics</span>
+              <span className="font-bold text-white text-sm block">Logistics</span>
               <span className="text-zinc-500 text-xs block">Muscat, Oman</span>
             </div>
           </Link>

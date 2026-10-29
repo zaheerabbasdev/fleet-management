@@ -28,7 +28,7 @@ const MAINTENANCE_TYPES = [
 ];
 
 const OMAN_WORKSHOPS = [
-  "Habib Ullah Workshop, Muscat",
+  "Logistics Workshop, Muscat",
   "Abdul Salam Transport Services, Sohar",
   "Hamed Al-Harthi Auto Repair",
   "Majan Truck Services",

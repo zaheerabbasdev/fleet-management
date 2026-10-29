@@ -40,7 +40,7 @@ async function main() {
 
   // 2. Create Settings
   const settingsData = [
-    { key: "company_name", value: "Habib Ullah Logistics LLC" },
+    { key: "company_name", value: "Logistics LLC" },
     { key: "company_address", value: "Mina Al Fahal, Muscat, Oman" },
     { key: "company_cr", value: "CR-1029485" },
     { key: "company_vat", value: "OM110029348" },
@@ -236,7 +236,7 @@ async function main() {
           employeeId: emp.id,
           visaNumber: `V${876543 + i}`,
           visaType: "Work Visa",
-          sponsor: "Habib Ullah Logistics LLC",
+          sponsor: "Logistics LLC",
           issueDate: new Date("2024-01-01"),
           // Create an expiry soon (25 days) for driver 2, and normal expiries for others
           expiryDate: i === 1 ? addDays(new Date(), 25) : new Date("2026-01-01"),

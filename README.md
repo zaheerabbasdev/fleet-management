@@ -1,12 +1,12 @@
-# Habib Ullah Logistics — Fleet & HR Management System
+# Logistics — Fleet & HR Management System
 
-Welcome to the **Habib Ullah Logistics Fleet & HR Management System**—a custom-built, modern enterprise enterprise resource planning (ERP) and operations dashboard designed specifically for Omani logistics operations. This system streamlines driver/employee tracking, fleet maintenance, dispatch logs, fuel monitoring, client billing with Omani VAT, ROP traffic violation tracking, and automated payroll calculations.
+Welcome to the **Logistics Fleet & HR Management System**—a custom-built, modern enterprise enterprise resource planning (ERP) and operations dashboard designed specifically for Omani logistics operations. This system streamlines driver/employee tracking, fleet maintenance, dispatch logs, fuel monitoring, client billing with Omani VAT, ROP traffic violation tracking, and automated payroll calculations.
 
 ---
 
 ## 🏢 Brand & Company Identity
 
-- **Company Name:** Habib Ullah Logistics LLC
+- **Company Name:** Logistics LLC
 - **Location:** Muscat, Sultanate of Oman
 - **System Initials / Badge:** `HU` (representing **H**abib **U**llah Logistics)
 
