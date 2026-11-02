@@ -26,7 +26,7 @@ export default function Modal({ title, onClose, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -34,7 +34,7 @@ export default function Modal({ title, onClose, children }: ModalProps) {
       aria-modal="true"
       aria-label={title}
     >
-      <div className="w-full max-w-3xl rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl">
+      <div className="animate-fade-up w-full max-w-3xl rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl">
         <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
           <h2 className="text-lg font-bold text-white">{title}</h2>
           <button

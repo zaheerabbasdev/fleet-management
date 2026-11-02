@@ -23,7 +23,7 @@ export default function DashboardLayout({
 
         {/* Dynamic page viewport */}
         <main className="flex-1 overflow-y-auto bg-zinc-900/30 p-4 sm:p-6 md:p-8">
-          <div className="mx-auto max-w-7xl space-y-8">
+          <div className="mx-auto max-w-7xl animate-fade-up space-y-8">
             {children}
           </div>
         </main>

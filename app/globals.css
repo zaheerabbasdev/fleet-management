@@ -16,6 +16,38 @@ body {
   background-color: #09090b;
   color: #f4f4f5;
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(16 185 129 / 0.35);
+  color: #fff;
+}
+
+/* Consistent keyboard focus ring across buttons, links and inputs */
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Soft entrance for page content and dialogs */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up { animation: none; }
+}
+
+/* Subtle dotted grid used on hero/background panels */
+.bg-grid {
+  background-image: radial-gradient(rgb(63 63 70 / 0.5) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 /* Custom premium scrollbars */
