@@ -38,8 +38,8 @@ export default function TripForm({ onClose, onSaved }: FormProps) {
       try {
         const [resTrucks, resDrivers, resCustomers] = await Promise.all([
           fetch("/api/trucks"),
-          fetch("/api/employees"),
-          fetch("/api/customers"),
+          fetch("/api/employees?status=Active&pageSize=500"),
+          fetch("/api/customers?pageSize=500"),
         ]);
 
         if (resTrucks.ok && resDrivers.ok && resCustomers.ok) {
@@ -47,9 +47,12 @@ export default function TripForm({ onClose, onSaved }: FormProps) {
           const dData = await resDrivers.json();
           const cData = await resCustomers.json();
 
-          setTrucks(tData.filter((t: any) => t.status === "Available" || t.status === "On Trip"));
-          setDrivers(dData.filter((e: any) => e.status === "Active"));
-          setCustomers(cData.items || cData);
+          // Some endpoints return a plain array, others a paginated { items } object
+          const list = (d: any) => (Array.isArray(d) ? d : d.items ?? []);
+
+          setTrucks(list(tData).filter((t: any) => t.status === "Available" || t.status === "On Trip"));
+          setDrivers(list(dData).filter((e: any) => e.status === "Active"));
+          setCustomers(list(cData));
         }
       } catch (err) {
         console.error("Failed to load options:", err);
