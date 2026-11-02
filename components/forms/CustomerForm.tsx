@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Save, ShieldAlert } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const OMAN_CITIES = [
   "Muscat", "Salalah", "Sohar", "Nizwa", "Sur", "Ibra", "Rustaq", "Barka",
@@ -200,8 +201,7 @@ export default function CustomerForm({ onClose, onSaved }: FormProps) {
           <div className="grid gap-5 sm:grid-cols-2 text-xs">
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Most they can owe (OMR)</label>
-              <input
-                type="number"
+              <NumberInput
                 step="0.001"
                 name="creditLimit"
                 value={formData.creditLimit}

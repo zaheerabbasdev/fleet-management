@@ -20,6 +20,7 @@ import {
   History,
   FileCheck
 } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 export default function EmployeeProfilePage({
   params: paramsPromise,
@@ -1108,8 +1109,7 @@ export default function EmployeeProfilePage({
               >
                 <div>
                   <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Basic Salary (OMR) *</label>
-                  <input
-                    type="number"
+                  <NumberInput
                     step="0.001"
                     required
                     value={salaryForm.basicSalary}
@@ -1121,8 +1121,7 @@ export default function EmployeeProfilePage({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Accommodation (OMR)</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       step="0.001"
                       value={salaryForm.accommodationAllowance}
                       onChange={(e) => setSalaryForm({ ...salaryForm, accommodationAllowance: e.target.value })}
@@ -1132,8 +1131,7 @@ export default function EmployeeProfilePage({
                   </div>
                   <div>
                     <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Food (OMR)</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       step="0.001"
                       value={salaryForm.foodAllowance}
                       onChange={(e) => setSalaryForm({ ...salaryForm, foodAllowance: e.target.value })}
@@ -1145,8 +1143,7 @@ export default function EmployeeProfilePage({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Transport (OMR)</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       step="0.001"
                       value={salaryForm.transportAllowance}
                       onChange={(e) => setSalaryForm({ ...salaryForm, transportAllowance: e.target.value })}
@@ -1156,8 +1153,7 @@ export default function EmployeeProfilePage({
                   </div>
                   <div>
                     <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Other Allowance (OMR)</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       step="0.001"
                       value={salaryForm.otherAllowance}
                       onChange={(e) => setSalaryForm({ ...salaryForm, otherAllowance: e.target.value })}
@@ -1168,8 +1164,7 @@ export default function EmployeeProfilePage({
                 </div>
                 <div>
                   <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Overtime rate (OMR per hr)</label>
-                  <input
-                    type="number"
+                  <NumberInput
                     step="0.001"
                     value={salaryForm.overtimeRate}
                     onChange={(e) => setSalaryForm({ ...salaryForm, overtimeRate: e.target.value })}
@@ -1257,8 +1252,7 @@ export default function EmployeeProfilePage({
               >
                 <div>
                   <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Advance Amount (OMR) *</label>
-                  <input
-                    type="number"
+                  <NumberInput
                     step="0.001"
                     required
                     value={advanceForm.amount}
@@ -1269,8 +1263,7 @@ export default function EmployeeProfilePage({
                 </div>
                 <div>
                   <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Monthly Deduction (OMR) *</label>
-                  <input
-                    type="number"
+                  <NumberInput
                     step="0.001"
                     required
                     value={advanceForm.deductionMonthly}
@@ -1404,8 +1397,7 @@ export default function EmployeeProfilePage({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Number of Days *</label>
-                    <input
-                      type="number"
+                    <NumberInput
                       required
                       value={leaveForm.days}
                       onChange={(e) => setLeaveForm({ ...leaveForm, days: e.target.value })}

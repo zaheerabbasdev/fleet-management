@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save, ShieldAlert, Wrench } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const MAINTENANCE_TYPES = [
   "Engine Oil & Filter Change",
@@ -202,8 +203,7 @@ export default function MaintenanceForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Meter reading (KM) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="odometer"
                   required
                   value={formData.odometer}
@@ -228,8 +228,7 @@ export default function MaintenanceForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Cost (OMR) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="cost"
                   required
@@ -251,8 +250,7 @@ export default function MaintenanceForm({ onClose, onSaved }: FormProps) {
 
               <div className="sm:col-span-2">
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Next service at (KM)</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="nextServiceOdometer"
                   placeholder="e.g. 125000 km"
                   value={formData.nextServiceOdometer || ""}

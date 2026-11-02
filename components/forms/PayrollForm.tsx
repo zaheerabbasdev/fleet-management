@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save, ShieldAlert, Wallet } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -206,8 +207,7 @@ export default function PayrollForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Basic salary (OMR) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="baseSalary"
                   required
@@ -218,8 +218,7 @@ export default function PayrollForm({ onClose, onSaved }: FormProps) {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Allowances (OMR)</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="allowances"
                   value={formData.allowances}
@@ -230,8 +229,7 @@ export default function PayrollForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Overtime pay (OMR)</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="overtime"
                   value={formData.overtime}
@@ -241,8 +239,7 @@ export default function PayrollForm({ onClose, onSaved }: FormProps) {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Bonus (OMR)</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="bonus"
                   value={formData.bonus}
@@ -253,8 +250,7 @@ export default function PayrollForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Money taken off (fines, advances)</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="deductions"
                   value={formData.deductions}

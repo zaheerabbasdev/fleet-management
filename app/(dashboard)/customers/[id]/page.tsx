@@ -8,6 +8,7 @@ import {
   CreditCard, FileText, Package, Edit2, Save, X,
   Trash2, AlertTriangle, ShieldAlert, TrendingUp,
 } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const OMAN_CITIES = [
   "Muscat", "Salalah", "Sohar", "Nizwa", "Sur", "Ibra", "Rustaq", "Barka",
@@ -282,8 +283,7 @@ export default function CustomerDetailPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1">Credit Limit (OMR)</label>
-                  <input
-                    type="number"
+                  <NumberInput
                     min="0"
                     step="0.001"
                     value={form.creditLimit}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save, ShieldAlert, Route } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 interface FormProps {
   onClose: () => void;
@@ -34,31 +35,40 @@ export default function TripForm({ onClose, onSaved }: FormProps) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Some endpoints return a plain array, others a paginated { items } object
+    const list = (d: any) => (Array.isArray(d) ? d : d?.items ?? []);
+
+    async function load(url: string, label: string): Promise<any[]> {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${label} (${res.status})`);
+      return list(await res.json());
+    }
+
     async function loadOptions() {
-      try {
-        const [resTrucks, resDrivers, resCustomers] = await Promise.all([
-          fetch("/api/trucks"),
-          fetch("/api/employees?status=Active&pageSize=500"),
-          fetch("/api/customers?pageSize=500"),
-        ]);
+      const [t, d, c] = await Promise.allSettled([
+        load("/api/trucks", "vehicles"),
+        load("/api/employees?status=Active&pageSize=500", "drivers"),
+        load("/api/customers?pageSize=500", "customers"),
+      ]);
 
-        if (resTrucks.ok && resDrivers.ok && resCustomers.ok) {
-          const tData = await resTrucks.json();
-          const dData = await resDrivers.json();
-          const cData = await resCustomers.json();
-
-          // Some endpoints return a plain array, others a paginated { items } object
-          const list = (d: any) => (Array.isArray(d) ? d : d.items ?? []);
-
-          setTrucks(list(tData).filter((t: any) => t.status === "Available" || t.status === "On Trip"));
-          setDrivers(list(dData).filter((e: any) => e.status === "Active"));
-          setCustomers(list(cData));
-        }
-      } catch (err) {
-        console.error("Failed to load options:", err);
-      } finally {
-        setLoadingOptions(false);
+      if (t.status === "fulfilled") {
+        setTrucks(t.value.filter((x: any) => x.status === "Available" || x.status === "On Trip"));
       }
+      if (d.status === "fulfilled") {
+        setDrivers(d.value.filter((x: any) => x.status === "Active"));
+      }
+      if (c.status === "fulfilled") {
+        setCustomers(c.value);
+      }
+
+      const failed = [t, d, c]
+        .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+        .map((r) => r.reason?.message || "unknown error");
+      if (failed.length) {
+        console.error("Failed to load options:", failed);
+        setError(`Could not load: ${failed.join(", ")}. Try refreshing the page or signing in again.`);
+      }
+      setLoadingOptions(false);
     }
     loadOptions();
   }, []);
@@ -209,8 +219,7 @@ export default function TripForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Meter reading at start (KM) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="startingOdometer"
                   required
                   value={formData.startingOdometer}
@@ -257,8 +266,7 @@ export default function TripForm({ onClose, onSaved }: FormProps) {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Money for this trip (OMR) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="revenue"
                   step="0.001"
                   required

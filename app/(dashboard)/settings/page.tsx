@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save, Settings, ShieldCheck, Building, Percent, BellRing, Clock } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -163,8 +164,7 @@ export default function SettingsPage() {
           <div className="grid gap-5 sm:grid-cols-3 text-xs">
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Document Expiry Alerts Offset (Days) *</label>
-              <input
-                type="number"
+              <NumberInput
                 name="warning_days_expiry"
                 value={settings.warning_days_expiry}
                 onChange={handleChange}
@@ -228,8 +228,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Tax Rate (%)</label>
-              <input
-                type="number"
+              <NumberInput
                 step="0.001"
                 name="tax_rate"
                 value={settings.tax_rate}

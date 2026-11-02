@@ -9,6 +9,7 @@ import {
   CreditCard, Package, CheckCircle2, Clock, AlertTriangle,
   XCircle, Send, Printer, Plus, Trash2, ShieldAlert,
 } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const STATUS_CONFIG: Record<string, { color: string; icon: any }> = {
   Draft:           { color: "bg-zinc-500/10 text-zinc-400 ring-zinc-500/20",    icon: FileText },
@@ -227,7 +228,7 @@ export default function InvoiceDetailPage() {
               <label className="block text-xs font-medium text-zinc-400 mb-1">
                 Amount (OMR) * <span className="text-zinc-500">(Left to pay: {balance.toFixed(3)})</span>
               </label>
-              <input type="number" required min="0.001" step="0.001" max={balance}
+              <NumberInput required min="0.001" step="0.001" max={balance}
                 placeholder={balance.toFixed(3)} value={payForm.amount}
                 onChange={e => setPayForm({...payForm, amount: e.target.value})}
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"

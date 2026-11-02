@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save, ShieldAlert, Droplet } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 interface FormProps {
   onClose: () => void;
@@ -215,8 +216,7 @@ export default function FuelForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Meter reading (KM) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="odometer"
                   required
                   value={formData.odometer}
@@ -252,8 +252,7 @@ export default function FuelForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Liters *</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.01"
                   name="liters"
                   required
@@ -264,8 +263,7 @@ export default function FuelForm({ onClose, onSaved }: FormProps) {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Price per liter (OMR) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="pricePerLiter"
                   required

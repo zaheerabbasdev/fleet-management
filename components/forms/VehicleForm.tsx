@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, ShieldAlert } from "lucide-react";
 import { VEHICLE_CATEGORIES, getTypesForCategory } from "@/lib/vehicleCategories";
+import NumberInput from "@/components/NumberInput";
 
 interface FormProps {
   onClose: () => void;
@@ -233,8 +234,7 @@ export default function VehicleForm({ onClose, onSaved }: FormProps) {
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
                 Year *
               </label>
-              <input
-                type="number"
+              <NumberInput
                 name="year"
                 required
                 min={1980}
@@ -248,8 +248,7 @@ export default function VehicleForm({ onClose, onSaved }: FormProps) {
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">
                 Meter reading (KM) *
               </label>
-              <input
-                type="number"
+              <NumberInput
                 name="odometer"
                 required
                 min={0}

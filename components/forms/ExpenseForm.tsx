@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Save, ShieldAlert } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const EXPENSE_CATEGORIES = [
   "Office & Administration",
@@ -164,8 +165,7 @@ export default function ExpenseForm({ onClose, onSaved }: FormProps) {
 
             <div>
               <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Amount (OMR) *</label>
-              <input
-                type="number"
+              <NumberInput
                 step="0.001"
                 name="amount"
                 required

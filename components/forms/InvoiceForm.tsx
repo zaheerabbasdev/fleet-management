@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Save, ShieldAlert, Plus, X } from "lucide-react";
+import NumberInput from "@/components/NumberInput";
 
 const VAT_RATE = 0.05; // Oman 5% VAT
 
@@ -223,8 +224,7 @@ export default function InvoiceForm({ onClose, onSaved }: FormProps) {
 
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Discount (OMR)</label>
-                <input
-                  type="number"
+                <NumberInput
                   step="0.001"
                   name="discountAmount"
                   value={formData.discountAmount}

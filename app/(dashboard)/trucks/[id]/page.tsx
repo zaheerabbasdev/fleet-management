@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { VEHICLE_CATEGORIES, getTypesForCategory } from "@/lib/vehicleCategories";
+import NumberInput from "@/components/NumberInput";
 
 export default function TruckDetailsPage() {
   const router = useRouter();
@@ -342,8 +343,7 @@ export default function TruckDetailsPage() {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Manufacturing Year *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="year"
                   required
                   value={formData.year}
@@ -376,8 +376,7 @@ export default function TruckDetailsPage() {
               </div>
               <div>
                 <label className="block text-zinc-400 font-semibold uppercase tracking-wider mb-1">Current Odometer Reading (KM) *</label>
-                <input
-                  type="number"
+                <NumberInput
                   name="odometer"
                   required
                   value={formData.odometer}
