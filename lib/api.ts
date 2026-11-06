@@ -1,5 +1,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const isValidDate = (v: string) => !Number.isNaN(new Date(v).getTime());
+
+/** A required date string (e.g. "2026-11-01") that must be a real date. */
+export const dateString = (requiredMessage = "Date is required") =>
+  z.string().min(1, requiredMessage).refine(isValidDate, "Invalid date");
+
+/** An optional date string; empty values are allowed, anything else must be a real date. */
+export const optionalDateString = () =>
+  z
+    .string()
+    .refine((v) => v === "" || isValidDate(v), "Invalid date")
+    .optional()
+    .nullable();
+
+/** Parses a route `[id]` param. Returns null when it is not a positive whole number. */
+export function parseId(raw: string): number | null {
+  return /^\d+$/.test(raw) && Number(raw) > 0 && Number.isSafeInteger(Number(raw)) ? Number(raw) : null;
+}
+
+export function invalidIdResponse() {
+  return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+}
 
 /** Reads `page` and `pageSize` from the URL and keeps them in a safe range. */
 export function getPaging(searchParams: URLSearchParams, defaultPageSize = 20) {
@@ -15,6 +39,9 @@ export function getPaging(searchParams: URLSearchParams, defaultPageSize = 20) {
 export function handleApiError(error: unknown) {
   if (error instanceof SyntaxError) {
     return NextResponse.json({ error: "The request data is not valid JSON" }, { status: 400 });
+  }
+  if ((error as { name?: string } | null)?.name === "PrismaClientValidationError") {
+    return NextResponse.json({ error: "Some of the data sent is not valid" }, { status: 400 });
   }
   const code = (error as { code?: string } | null)?.code;
   if (code === "P2002") {

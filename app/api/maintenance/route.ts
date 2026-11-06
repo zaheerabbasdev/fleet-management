@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, dateString, optionalDateString } from "@/lib/api";
 import { z } from "zod";
 
 const maintenanceSchema = z.object({
   truckId: z.number().int().positive(),
-  date: z.string().min(1, "Date is required"),
+  date: dateString(),
   maintenanceType: z.string().min(1, "Maintenance type is required"),
   description: z.string().optional().nullable(),
   odometer: z.number().int().nonnegative(),
   workshop: z.string().optional().nullable(),
   cost: z.number().positive("Cost must be positive"),
-  nextServiceDate: z.string().optional().nullable(),
+  nextServiceDate: optionalDateString(),
   nextServiceOdometer: z.number().int().nonnegative().optional().nullable(),
   notes: z.string().optional().nullable(),
 });

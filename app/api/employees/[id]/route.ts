@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, dateString, optionalDateString, parseId, invalidIdResponse } from "@/lib/api";
 import { z } from "zod";
 
 const employeeUpdateSchema = z.object({
   name: z.string().min(2, "Full Name is required"),
   fatherName: z.string().optional().nullable(),
-  dob: z.string().optional().nullable(),
+  dob: optionalDateString(),
   gender: z.string().optional().nullable(),
   nationality: z.string().min(2, "Nationality is required"),
   phone: z.string().min(5, "Valid phone number is required"),
@@ -16,8 +16,8 @@ const employeeUpdateSchema = z.object({
   permanentAddress: z.string().optional().nullable(),
   emergencyName: z.string().optional().nullable(),
   emergencyPhone: z.string().optional().nullable(),
-  joiningDate: z.string().min(1, "Joining Date is required"),
-  arrivalDate: z.string().optional().nullable(),
+  joiningDate: dateString("Joining Date is required"),
+  arrivalDate: optionalDateString(),
   status: z.string(),
   notes: z.string().optional().nullable(),
 });
@@ -28,7 +28,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const employeeId = parseInt(id);
+    const employeeId = parseId(id);
+    if (employeeId === null) return invalidIdResponse();
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: "Invalid employee ID" }, { status: 400 });
@@ -82,7 +83,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const employeeId = parseInt(id);
+    const employeeId = parseId(id);
+    if (employeeId === null) return invalidIdResponse();
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: "Invalid employee ID" }, { status: 400 });
@@ -149,7 +151,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const employeeId = parseInt(id);
+    const employeeId = parseId(id);
+    if (employeeId === null) return invalidIdResponse();
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: "Invalid employee ID" }, { status: 400 });

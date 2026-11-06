@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, optionalDateString } from "@/lib/api";
 import { z } from "zod";
 
 const payrollSchema = z.object({
@@ -14,7 +14,7 @@ const payrollSchema = z.object({
   deductions: z.number().nonnegative().default(0),
   notes: z.string().optional().nullable(),
   status: z.string().default("Pending"),
-  paymentDate: z.string().optional().nullable(),
+  paymentDate: optionalDateString(),
   paymentMethod: z.string().optional().nullable(),
   paymentReference: z.string().optional().nullable(),
 });

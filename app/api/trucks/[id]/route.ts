@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, optionalDateString, parseId, invalidIdResponse } from "@/lib/api";
 import { z } from "zod";
 
 const truckUpdateSchema = z.object({
@@ -16,7 +16,7 @@ const truckUpdateSchema = z.object({
   vin: z.string().min(5),
   engineNumber: z.string().optional().nullable(),
   odometer: z.number().int().nonnegative(),
-  purchaseDate: z.string().optional().nullable(),
+  purchaseDate: optionalDateString(),
   status: z.string().default("Available"),
   notes: z.string().optional().nullable(),
 });
@@ -27,7 +27,8 @@ export async function GET(
 ) {
   try {
     const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const id = parseId(idStr);
+    if (id === null) return invalidIdResponse();
     const truck = await prisma.truck.findUnique({
       where: { id },
       include: {
@@ -76,7 +77,8 @@ export async function PUT(
 ) {
   try {
     const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const id = parseId(idStr);
+    if (id === null) return invalidIdResponse();
     const body = await request.json();
     const result = truckUpdateSchema.safeParse(body);
 
@@ -146,7 +148,8 @@ export async function DELETE(
 ) {
   try {
     const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const id = parseId(idStr);
+    if (id === null) return invalidIdResponse();
     const truck = await prisma.truck.findUnique({ where: { id } });
 
     if (!truck) {

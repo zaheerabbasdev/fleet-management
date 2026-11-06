@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, dateString } from "@/lib/api";
 import { z } from "zod";
 
 const fuelSchema = z.object({
   fuelId: z.string().min(3),
-  date: z.string().min(1),
+  date: dateString(),
   truckId: z.number().int().positive(),
   driverId: z.number().int().positive(),
   tripId: z.number().int().positive().optional().nullable(),

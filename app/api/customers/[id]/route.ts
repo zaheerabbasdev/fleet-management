@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, parseId, invalidIdResponse } from "@/lib/api";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -23,9 +23,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
     const customer = await prisma.customer.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: {
         trips: {
           orderBy: { tripDate: "desc" },
@@ -86,7 +88,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
     const body = await request.json();
     const result = updateSchema.safeParse(body);
 
@@ -95,7 +99,7 @@ export async function PUT(
     }
 
     const customer = await prisma.customer.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: result.data as any,
     });
 
@@ -121,10 +125,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
 
     const customer = await prisma.customer.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: { _count: { select: { trips: true, invoices: true } } },
     });
 
@@ -139,7 +145,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.customer.delete({ where: { id: parseInt(id) } });
+    await prisma.customer.delete({ where: { id: id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, dateString, parseId, invalidIdResponse } from "@/lib/api";
 import { z } from "zod";
 
 const updateSchema = z.object({
-  dueDate: z.string().optional(),
+  dueDate: dateString("Due date is required").optional(),
   status: z.enum(["Draft", "Sent", "Partially Paid", "Paid", "Overdue", "Cancelled"]).optional(),
   notes: z.string().optional().nullable(),
   discountAmount: z.number().nonnegative().optional(),
@@ -15,9 +15,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
     const invoice = await prisma.invoice.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: {
         customer: {
           select: {
@@ -77,7 +79,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
     const body = await request.json();
     const result = updateSchema.safeParse(body);
 
@@ -88,7 +92,7 @@ export async function PUT(
     const { dueDate, ...rest } = result.data;
 
     const invoice = await prisma.invoice.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: {
         ...(dueDate ? { dueDate: new Date(dueDate) } : {}),
         ...rest,
@@ -117,10 +121,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = parseId(rawId);
+    if (id === null) return invalidIdResponse();
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: { _count: { select: { payments: true } } },
     });
 
@@ -142,7 +148,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.invoice.delete({ where: { id: parseInt(id) } });
+    await prisma.invoice.delete({ where: { id: id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE Invoice error:", error);

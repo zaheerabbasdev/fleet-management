@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, dateString } from "@/lib/api";
 import { z } from "zod";
 
 const expenseSchema = z.object({
   expenseId: z.string().min(3, "Expense ID is required"),
-  date: z.string().min(1, "Date is required"),
+  date: dateString(),
   truckId: z.number().int().positive().optional().nullable(),
   tripId: z.number().int().positive().optional().nullable(),
   employeeId: z.number().int().positive().optional().nullable(),

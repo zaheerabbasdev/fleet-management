@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, dateString } from "@/lib/api";
 import { z } from "zod";
 
 const paymentSchema = z.object({
   invoiceId: z.number().int().positive(),
-  date: z.string().min(1, "Payment date is required"),
+  date: dateString("Payment date is required"),
   amount: z.number().positive("Payment amount must be positive"),
   paymentMethod: z.string().default("Bank Transfer"),
   referenceNumber: z.string().optional().nullable(),

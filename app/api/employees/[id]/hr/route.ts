@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, parseId, invalidIdResponse } from "@/lib/api";
 
 export async function POST(
   request: Request,
@@ -8,7 +8,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const employeeId = parseInt(id);
+    const employeeId = parseId(id);
+    if (employeeId === null) return invalidIdResponse();
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: "Invalid employee ID" }, { status: 400 });

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, dateString } from "@/lib/api";
 import { z } from "zod";
 
 const invoiceSchema = z.object({
   invoiceNumber: z.string().min(3),
   customerId: z.number().int().positive(),
-  date: z.string().min(1),
-  dueDate: z.string().min(1),
+  date: dateString(),
+  dueDate: dateString("Due date is required"),
   subtotal: z.number().nonnegative(),
   taxAmount: z.number().nonnegative().default(0),
   discountAmount: z.number().nonnegative().default(0),

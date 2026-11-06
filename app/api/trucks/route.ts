@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { handleApiError } from "@/lib/api";
+import { handleApiError, optionalDateString } from "@/lib/api";
 import { z } from "zod";
 
 const truckCreateSchema = z.object({
@@ -16,7 +16,7 @@ const truckCreateSchema = z.object({
   vin: z.string().min(5, "VIN/Chassis Number is required"),
   engineNumber: z.string().optional().nullable(),
   odometer: z.number().int().nonnegative("Odometer reading cannot be negative"),
-  purchaseDate: z.string().optional().nullable(),
+  purchaseDate: optionalDateString(),
   status: z.string().default("Available"),
   notes: z.string().optional().nullable(),
 });

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLinks, getPaging, handleApiError } from "@/lib/api";
+import { checkLinks, getPaging, handleApiError, dateString } from "@/lib/api";
 import { z } from "zod";
 
 const fineSchema = z.object({
   employeeId: z.number().int().positive().optional().nullable(),
   truckId: z.number().int().positive().optional().nullable(),
-  date: z.string().min(1, "Date is required"),
+  date: dateString(),
   fineType: z.string().min(1, "Fine type is required"),
   amount: z.number().positive("Fine amount must be positive"),
   authority: z.string().default("ROP"),
